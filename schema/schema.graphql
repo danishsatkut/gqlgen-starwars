@@ -1,0 +1,8 @@
+type Query {
+    film(id: ID!): Film!
+}
+
+type Film {
+    id: ID!
+    name: String!
+}
