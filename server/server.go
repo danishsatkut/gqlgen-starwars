@@ -1,6 +1,8 @@
 package main
 
 import (
+	"github.com/peterhellberg/swapi"
+
 	"gqlgen-starwars"
 	"gqlgen-starwars/resolver"
 
@@ -19,8 +21,10 @@ func main() {
 		port = defaultPort
 	}
 
+	config := gqlgen_starwars.Config{Resolvers: resolver.NewRootResolver(swapi.DefaultClient)}
+
 	http.Handle("/", handler.Playground("GraphQL playground", "/query"))
-	http.Handle("/query", handler.GraphQL(gqlgen_starwars.NewExecutableSchema(gqlgen_starwars.Config{Resolvers: &resolver.Resolver{}})))
+	http.Handle("/query", handler.GraphQL(gqlgen_starwars.NewExecutableSchema(config)))
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))

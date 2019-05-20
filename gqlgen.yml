@@ -14,6 +14,10 @@ model:
   filename: model/generated.go
   package: model
 
+models:
+  Film:
+    model: github.com/peterhellberg/swapi.Film
+
 # Resolver stub generation
 resolver:
   filename: resolver/resolver.go

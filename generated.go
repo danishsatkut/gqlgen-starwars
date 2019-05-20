@@ -6,13 +6,13 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"gqlgen-starwars/model"
 	"strconv"
 	"sync"
 	"sync/atomic"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
+	"github.com/peterhellberg/swapi"
 	"github.com/vektah/gqlparser"
 	"github.com/vektah/gqlparser/ast"
 )
@@ -35,6 +35,7 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	Film() FilmResolver
 	Query() QueryResolver
 }
 
@@ -43,8 +44,11 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Film struct {
-		ID   func(childComplexity int) int
-		Name func(childComplexity int) int
+		Director  func(childComplexity int) int
+		EpisodeID func(childComplexity int) int
+		ID        func(childComplexity int) int
+		Name      func(childComplexity int) int
+		Producer  func(childComplexity int) int
 	}
 
 	Query struct {
@@ -52,8 +56,12 @@ type ComplexityRoot struct {
 	}
 }
 
+type FilmResolver interface {
+	ID(ctx context.Context, obj *swapi.Film) (string, error)
+	Name(ctx context.Context, obj *swapi.Film) (string, error)
+}
 type QueryResolver interface {
-	Film(ctx context.Context, id string) (*model.Film, error)
+	Film(ctx context.Context, id string) (*swapi.Film, error)
 }
 
 type executableSchema struct {
@@ -71,6 +79,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
+	case "Film.director":
+		if e.complexity.Film.Director == nil {
+			break
+		}
+
+		return e.complexity.Film.Director(childComplexity), true
+
+	case "Film.episodeId":
+		if e.complexity.Film.EpisodeID == nil {
+			break
+		}
+
+		return e.complexity.Film.EpisodeID(childComplexity), true
+
 	case "Film.id":
 		if e.complexity.Film.ID == nil {
 			break
@@ -84,6 +106,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Film.Name(childComplexity), true
+
+	case "Film.producer":
+		if e.complexity.Film.Producer == nil {
+			break
+		}
+
+		return e.complexity.Film.Producer(childComplexity), true
 
 	case "Query.film":
 		if e.complexity.Query.Film == nil {
@@ -168,6 +197,9 @@ var parsedSchema = gqlparser.MustLoadSchema(
 type Film {
     id: ID!
     name: String!
+    episodeId: Int!
+    director: String!
+    producer: String!
 }
 `},
 )
@@ -236,20 +268,20 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _Film_id(ctx context.Context, field graphql.CollectedField, obj *model.Film) graphql.Marshaler {
+func (ec *executionContext) _Film_id(ctx context.Context, field graphql.CollectedField, obj *swapi.Film) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object:   "Film",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
+		return ec.resolvers.Film().ID(rctx, obj)
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -263,7 +295,34 @@ func (ec *executionContext) _Film_id(ctx context.Context, field graphql.Collecte
 	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Film_name(ctx context.Context, field graphql.CollectedField, obj *model.Film) graphql.Marshaler {
+func (ec *executionContext) _Film_name(ctx context.Context, field graphql.CollectedField, obj *swapi.Film) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "Film",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Film().Name(rctx, obj)
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Film_episodeId(ctx context.Context, field graphql.CollectedField, obj *swapi.Film) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -276,7 +335,61 @@ func (ec *executionContext) _Film_name(ctx context.Context, field graphql.Collec
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Name, nil
+		return obj.EpisodeID, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Film_director(ctx context.Context, field graphql.CollectedField, obj *swapi.Film) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "Film",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Director, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Film_producer(ctx context.Context, field graphql.CollectedField, obj *swapi.Film) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "Film",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Producer, nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -318,10 +431,10 @@ func (ec *executionContext) _Query_film(ctx context.Context, field graphql.Colle
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.Film)
+	res := resTmp.(*swapi.Film)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNFilm2ᚖgqlgenᚑstarwarsᚋmodelᚐFilm(ctx, field.Selections, res)
+	return ec.marshalNFilm2ᚖgithubᚗcomᚋpeterhellbergᚋswapiᚐFilm(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
@@ -1220,7 +1333,7 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 var filmImplementors = []string{"Film"}
 
-func (ec *executionContext) _Film(ctx context.Context, sel ast.SelectionSet, obj *model.Film) graphql.Marshaler {
+func (ec *executionContext) _Film(ctx context.Context, sel ast.SelectionSet, obj *swapi.Film) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, filmImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -1230,14 +1343,47 @@ func (ec *executionContext) _Film(ctx context.Context, sel ast.SelectionSet, obj
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Film")
 		case "id":
-			out.Values[i] = ec._Film_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Film_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "name":
-			out.Values[i] = ec._Film_name(ctx, field, obj)
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Film_name(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "episodeId":
+			out.Values[i] = ec._Film_episodeId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "director":
+			out.Values[i] = ec._Film_director(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "producer":
+			out.Values[i] = ec._Film_producer(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -1553,11 +1699,11 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) marshalNFilm2gqlgenᚑstarwarsᚋmodelᚐFilm(ctx context.Context, sel ast.SelectionSet, v model.Film) graphql.Marshaler {
+func (ec *executionContext) marshalNFilm2githubᚗcomᚋpeterhellbergᚋswapiᚐFilm(ctx context.Context, sel ast.SelectionSet, v swapi.Film) graphql.Marshaler {
 	return ec._Film(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNFilm2ᚖgqlgenᚑstarwarsᚋmodelᚐFilm(ctx context.Context, sel ast.SelectionSet, v *model.Film) graphql.Marshaler {
+func (ec *executionContext) marshalNFilm2ᚖgithubᚗcomᚋpeterhellbergᚋswapiᚐFilm(ctx context.Context, sel ast.SelectionSet, v *swapi.Film) graphql.Marshaler {
 	if v == nil {
 		if !ec.HasError(graphql.GetResolverContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -1573,6 +1719,20 @@ func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface
 
 func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
 	res := graphql.MarshalID(v)
+	if res == graphql.Null {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
+	return graphql.UnmarshalInt(v)
+}
+
+func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
+	res := graphql.MarshalInt(v)
 	if res == graphql.Null {
 		if !ec.HasError(graphql.GetResolverContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
