@@ -1,0 +1,20 @@
+# .gqlgen.yml example
+#
+# Refer to https://gqlgen.com/config/
+# for detailed .gqlgen.yml documentation.
+
+schema:
+- "schema/schema.graphql"
+
+exec:
+  filename: generated.go
+
+# Let gqlgen know where to put the generated models (if any)
+model:
+  filename: model/generated.go
+  package: model
+
+# Resolver stub generation
+resolver:
+  filename: resolver/resolver.go
+  type: Resolver
