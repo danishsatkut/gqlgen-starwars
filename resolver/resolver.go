@@ -1,20 +1,24 @@
 package resolver
 
 import (
-	"context"
+	"github.com/peterhellberg/swapi"
 
 	"gqlgen-starwars"
-	"gqlgen-starwars/model"
-) // THIS CODE IS A STARTING POINT ONLY. IT WILL NOT BE UPDATED WITH SCHEMA CHANGES.
+	"gqlgen-starwars/resolver/starwars"
+)
 
-type Resolver struct{}
+type Resolver struct{
+	client *swapi.Client
+}
+
+func NewRootResolver(client *swapi.Client) *Resolver {
+	return &Resolver{client}
+}
 
 func (r *Resolver) Query() gqlgen_starwars.QueryResolver {
 	return &queryResolver{r}
 }
 
-type queryResolver struct{ *Resolver }
-
-func (r *queryResolver) Film(ctx context.Context, id string) (*model.Film, error) {
-	panic("not implemented")
+func (r *Resolver) Film() gqlgen_starwars.FilmResolver {
+	return starwars.NewFilmResolver(r.client)
 }
