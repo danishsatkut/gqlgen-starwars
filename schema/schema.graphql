@@ -5,4 +5,7 @@ type Query {
 type Film {
     id: ID!
     name: String!
+    episodeId: Int!
+    director: String!
+    producer: String!
 }
