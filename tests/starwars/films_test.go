@@ -51,6 +51,32 @@ func TestFilmQuery(t *testing.T) {
 	})
 
 	t.Run("when api returns error", func(t *testing.T) {
-		t.Skip("not implemented")
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(""))
+		}))
+		defer server.Close()
+
+		u, err := url.Parse(server.URL)
+		if err != nil {
+			t.Fatal(err.Error())
+		}
+
+		c := swapi.NewClient(nil)
+		c.BaseURL = u
+
+		// Arrange
+		query := `query { film(id: \"1\") { name } }`
+		req := testutils.NewGraphQLRequest(t, query)
+
+		response := httptest.NewRecorder()
+
+		// Act
+		testutils.PerformGraphQLRequest(response, req, handlers.SwapiClient(c))
+
+		// Assert
+		testutils.AssertSuccess(t, response)
+		testutils.AssertGraphQLData(t, response, "null")
+		testutils.AssertGraphQLErrors(t, response, []string{"failed to fetch film: error reading response from GET /api/films/1?format=json: EOF"})
 	})
 }

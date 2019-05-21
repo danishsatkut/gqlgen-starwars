@@ -37,12 +37,25 @@ func AssertGraphQLData(t *testing.T, res *httptest.ResponseRecorder, expected st
 
 	gqlResponse, err := parseGraphQLResponse(res)
 	if err != nil {
-		t.Errorf("Failed parsing graphql response: %v", err.Error())
+		t.Errorf("Failed parsing graphql response: %v", err)
 	}
 
-	t.Log("Error: ", gqlResponse.Errors)
-
 	assert.Equal(t, expected, string(gqlResponse.Data), "Response data did not match")
+}
+
+func AssertGraphQLErrors(t *testing.T, res *httptest.ResponseRecorder, errs []string) {
+	t.Helper()
+
+	gqlResponse, err := parseGraphQLResponse(res)
+	if err != nil {
+		t.Errorf("Failed parsing graphql response: %v", err)
+	}
+
+	assert.Equal(t, len(errs), len(gqlResponse.Errors), "Error count mismatch")
+
+	for i, e := range gqlResponse.Errors {
+		assert.Equal(t, errs[i], e.Message, "Error mismatch")
+	}
 }
 
 func AssertSuccess(t *testing.T, res *httptest.ResponseRecorder) {
