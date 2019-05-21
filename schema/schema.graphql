@@ -1,5 +1,6 @@
 type Query {
     film(id: ID!): Film!
+    character(id: ID!): Person!
 }
 
 type Film {
@@ -8,4 +9,10 @@ type Film {
     episodeId: Int!
     director: String!
     producer: String!
+}
+
+type Person {
+    id: ID!
+    name: String!
+    gender: String!
 }
