@@ -32,7 +32,7 @@ func (r *queryResolver) Film(ctx context.Context, id string) (*swapi.Film, error
 
 	film, err := r.client.Film(filmId)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to fetch film")
+		return nil, errors.New("Failed to fetch film")
 	}
 
 	return &film, nil
