@@ -27,8 +27,8 @@ func NewGraphQLRequest(t *testing.T, query string) *http.Request {
 	return req
 }
 
-func PerformGraphQLRequest(res http.ResponseWriter, req *http.Request) {
-	handler := handlers.NewGraphQlHandler()
+func PerformGraphQLRequest(res http.ResponseWriter, req *http.Request, opts ...handlers.Option) {
+	handler := handlers.NewGraphQlHandler(opts...)
 	handler.ServeHTTP(res, req)
 }
 
@@ -39,6 +39,8 @@ func AssertGraphQLData(t *testing.T, res *httptest.ResponseRecorder, expected st
 	if err != nil {
 		t.Errorf("Failed parsing graphql response: %v", err.Error())
 	}
+
+	t.Log("Error: ", gqlResponse.Errors)
 
 	assert.Equal(t, expected, string(gqlResponse.Data), "Response data did not match")
 }
