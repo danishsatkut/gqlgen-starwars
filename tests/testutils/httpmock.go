@@ -26,6 +26,8 @@ func NewMockRequest(status int) *MockRequest {
 // RespondWith starts a local test server that will return the specified response.
 // The caller should call Close when finished, to shut it down.
 func (m *MockRequest) RespondWith(t *testing.T, jsonResponse interface{}) {
+	t.Helper()
+
 	m.server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert := assert.New(t)
 
@@ -58,7 +60,7 @@ func (m *MockRequest) RespondWith(t *testing.T, jsonResponse interface{}) {
 
 		b, err := json.Marshal(jsonResponse)
 		if err != nil {
-			t.Fatal("Failed to marshal film", err, b)
+			t.Fatal("Failed to marshal response", err, b)
 		}
 
 		w.Write(b)
