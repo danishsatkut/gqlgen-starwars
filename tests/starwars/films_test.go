@@ -1,45 +1,28 @@
 package starwars
 
 import (
-	"fmt"
-	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
-	"gqlgen-starwars/handlers"
+	"gqlgen-starwars/tests/testutils"
 )
 
 func TestFilmQuery(t *testing.T) {
 	t.Run("when film is returned from api", func(t *testing.T) {
+		// Arrange
 		query := `query { film(id: \"1\") { name } }`
-		gqlQuery := fmt.Sprintf("{\"query\":\"%v\"}", query)
-
-		//	Make request
-		req, err := http.NewRequest("POST", "/query", strings.NewReader(gqlQuery))
-		if err != nil {
-			t.Fatal(err.Error())
-		}
-
-		req.Header.Set("Content-Type", "application/json")
+		req := testutils.NewGraphQLRequest(t, query)
 
 		response := httptest.NewRecorder()
 
-		// Perform
-		handler := handlers.NewGraphQlHandler()
+		// Act
+		testutils.PerformGraphQLRequest(response, req)
 
-		handler.ServeHTTP(response, req)
+		// Assert
+		testutils.AssertSuccess(t, response)
 
-		if response.Code != http.StatusOK {
-			t.Errorf("Wrong status: %v", response.Code)
-		}
-
-		resBody := response.Body.String()
-
-		expected := `{"data":{"film":{"name":"A New Hope"}}}`
-		if resBody != expected {
-			t.Errorf("Unexpected response: %v", resBody)
-		}
+		expected := `{"film":{"name":"A New Hope"}}`
+		testutils.AssertGraphQLData(t, response, expected)
 	})
 
 	t.Run("when api returns error", func(t *testing.T) {
