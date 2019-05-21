@@ -17,6 +17,8 @@ model:
 models:
   Film:
     model: github.com/peterhellberg/swapi.Film
+  Person:
+    model: github.com/peterhellberg/swapi.Person
 
 # Resolver stub generation
 resolver:
