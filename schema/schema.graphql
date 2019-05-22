@@ -9,6 +9,7 @@ type Film {
     episodeId: Int!
     director: String!
     producer: String!
+    characters: [Person!]!
 }
 
 type Person {

@@ -32,13 +32,14 @@ func (m *MockRequest) RespondWith(t *testing.T, jsonResponse interface{}) {
 	t.Helper()
 
 	httpmock.RegisterResponder(m.Method, m.URL().String(), func(req *http.Request) (*http.Response, error) {
-		// Validate Request Headers
+		// Assert Request Headers
 		if m.RequestHeaders != nil {
 			for key, value := range m.RequestHeaders {
 				assert.Equal(t, value, req.Header.Get(key))
 			}
 		}
 
+		// Create json response
 		res, err := httpmock.NewJsonResponse(m.StatusCode, jsonResponse)
 		if err != nil {
 			t.Fatal("Failed to marshal response", err)
