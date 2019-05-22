@@ -16,4 +16,5 @@ type Person {
     id: ID!
     name: String!
     gender: String!
+    films: [Film!]!
 }
