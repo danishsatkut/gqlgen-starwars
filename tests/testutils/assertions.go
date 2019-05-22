@@ -39,7 +39,7 @@ func AssertGraphQLErrors(t *testing.T, res *httptest.ResponseRecorder, errs []st
 func AssertSuccess(t *testing.T, res *httptest.ResponseRecorder) {
 	t.Helper()
 
-	assert.Equal(t, http.StatusOK, res.Code, "Wrong status: ", res.Code)
+	assert.Equal(t, http.StatusOK, res.Code, "Wrong status")
 }
 
 func parseGraphQLResponse(res *httptest.ResponseRecorder) (graphql.Response, error) {

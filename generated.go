@@ -45,14 +45,16 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Film struct {
-		Director  func(childComplexity int) int
-		EpisodeID func(childComplexity int) int
-		ID        func(childComplexity int) int
-		Name      func(childComplexity int) int
-		Producer  func(childComplexity int) int
+		Characters func(childComplexity int) int
+		Director   func(childComplexity int) int
+		EpisodeID  func(childComplexity int) int
+		ID         func(childComplexity int) int
+		Name       func(childComplexity int) int
+		Producer   func(childComplexity int) int
 	}
 
 	Person struct {
+		Films  func(childComplexity int) int
 		Gender func(childComplexity int) int
 		ID     func(childComplexity int) int
 		Name   func(childComplexity int) int
@@ -67,9 +69,13 @@ type ComplexityRoot struct {
 type FilmResolver interface {
 	ID(ctx context.Context, obj *swapi.Film) (string, error)
 	Name(ctx context.Context, obj *swapi.Film) (string, error)
+
+	Characters(ctx context.Context, obj *swapi.Film) ([]*swapi.Person, error)
 }
 type PersonResolver interface {
 	ID(ctx context.Context, obj *swapi.Person) (string, error)
+
+	Films(ctx context.Context, obj *swapi.Person) ([]*swapi.Film, error)
 }
 type QueryResolver interface {
 	Film(ctx context.Context, id string) (*swapi.Film, error)
@@ -90,6 +96,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "Film.characters":
+		if e.complexity.Film.Characters == nil {
+			break
+		}
+
+		return e.complexity.Film.Characters(childComplexity), true
 
 	case "Film.director":
 		if e.complexity.Film.Director == nil {
@@ -125,6 +138,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Film.Producer(childComplexity), true
+
+	case "Person.films":
+		if e.complexity.Person.Films == nil {
+			break
+		}
+
+		return e.complexity.Person.Films(childComplexity), true
 
 	case "Person.gender":
 		if e.complexity.Person.Gender == nil {
@@ -246,12 +266,14 @@ type Film {
     episodeId: Int!
     director: String!
     producer: String!
+    characters: [Person!]!
 }
 
 type Person {
     id: ID!
     name: String!
     gender: String!
+    films: [Film!]!
 }
 `},
 )
@@ -469,6 +491,33 @@ func (ec *executionContext) _Film_producer(ctx context.Context, field graphql.Co
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Film_characters(ctx context.Context, field graphql.CollectedField, obj *swapi.Film) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "Film",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Film().Characters(rctx, obj)
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*swapi.Person)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNPerson2ᚕᚖgithubᚗcomᚋpeterhellbergᚋswapiᚐPerson(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Person_id(ctx context.Context, field graphql.CollectedField, obj *swapi.Person) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
@@ -548,6 +597,33 @@ func (ec *executionContext) _Person_gender(ctx context.Context, field graphql.Co
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Person_films(ctx context.Context, field graphql.CollectedField, obj *swapi.Person) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "Person",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Person().Films(rctx, obj)
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*swapi.Film)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNFilm2ᚕᚖgithubᚗcomᚋpeterhellbergᚋswapiᚐFilm(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_film(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
@@ -1566,6 +1642,20 @@ func (ec *executionContext) _Film(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "characters":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Film_characters(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -1612,6 +1702,20 @@ func (ec *executionContext) _Person(ctx context.Context, sel ast.SelectionSet, o
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "films":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Person_films(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -1944,6 +2048,43 @@ func (ec *executionContext) marshalNFilm2githubᚗcomᚋpeterhellbergᚋswapiᚐ
 	return ec._Film(ctx, sel, &v)
 }
 
+func (ec *executionContext) marshalNFilm2ᚕᚖgithubᚗcomᚋpeterhellbergᚋswapiᚐFilm(ctx context.Context, sel ast.SelectionSet, v []*swapi.Film) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNFilm2ᚖgithubᚗcomᚋpeterhellbergᚋswapiᚐFilm(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
 func (ec *executionContext) marshalNFilm2ᚖgithubᚗcomᚋpeterhellbergᚋswapiᚐFilm(ctx context.Context, sel ast.SelectionSet, v *swapi.Film) graphql.Marshaler {
 	if v == nil {
 		if !ec.HasError(graphql.GetResolverContext(ctx)) {
@@ -1984,6 +2125,43 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 
 func (ec *executionContext) marshalNPerson2githubᚗcomᚋpeterhellbergᚋswapiᚐPerson(ctx context.Context, sel ast.SelectionSet, v swapi.Person) graphql.Marshaler {
 	return ec._Person(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNPerson2ᚕᚖgithubᚗcomᚋpeterhellbergᚋswapiᚐPerson(ctx context.Context, sel ast.SelectionSet, v []*swapi.Person) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNPerson2ᚖgithubᚗcomᚋpeterhellbergᚋswapiᚐPerson(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
 }
 
 func (ec *executionContext) marshalNPerson2ᚖgithubᚗcomᚋpeterhellbergᚋswapiᚐPerson(ctx context.Context, sel ast.SelectionSet, v *swapi.Person) graphql.Marshaler {

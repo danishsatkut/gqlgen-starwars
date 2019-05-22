@@ -1,14 +1,15 @@
 package testutils
 
 import (
-	"encoding/json"
 	"net/http"
-	"net/http/httptest"
 	"net/url"
 	"testing"
 
+	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
 )
+
+var baseURL = &url.URL{Scheme: "http", Host: "localhost:9999"}
 
 type MockRequest struct {
 	StatusCode      int
@@ -16,66 +17,45 @@ type MockRequest struct {
 	Path            string
 	RequestHeaders  map[string]string
 	ResponseHeaders map[string]string
-	server          *httptest.Server
 }
 
-func NewMockRequest(status int) *MockRequest {
-	return &MockRequest{StatusCode: status}
+func NewMockRequest(method string, path string, status int) *MockRequest {
+	return &MockRequest{
+		Method:     method,
+		Path:       path,
+		StatusCode: status,
+	}
 }
 
-// RespondWith starts a local test server that will return the specified response.
-// The caller should call Close when finished, to shut it down.
+// RespondWith registers a responder for the mock request path that will return the specified response.
 func (m *MockRequest) RespondWith(t *testing.T, jsonResponse interface{}) {
 	t.Helper()
 
-	m.server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		assert := assert.New(t)
-
-		// Validate Method
-		if m.Method != "" {
-			assert.Equal(m.Method, r.Method)
-		}
-
-		// Validate Path
-		if m.Path != "" {
-			assert.Equal(m.Path, r.URL.Path)
-		}
-
-		// Validate Request Headers
+	httpmock.RegisterResponder(m.Method, m.URL().String(), func(req *http.Request) (*http.Response, error) {
+		// Assert Request Headers
 		if m.RequestHeaders != nil {
 			for key, value := range m.RequestHeaders {
-				assert.Equal(value, r.Header.Get(key))
+				assert.Equal(t, value, req.Header.Get(key))
 			}
+		}
+
+		// Create json response
+		res, err := httpmock.NewJsonResponse(m.StatusCode, jsonResponse)
+		if err != nil {
+			t.Fatal("Failed to marshal response", err)
 		}
 
 		// Set Response Headers
 		if m.ResponseHeaders != nil {
 			for key, value := range m.ResponseHeaders {
-				w.Header().Set(key, value)
+				res.Header.Set(key, value)
 			}
 		}
 
-		// Set Response Code
-		w.WriteHeader(m.StatusCode)
-
-		b, err := json.Marshal(jsonResponse)
-		if err != nil {
-			t.Fatal("Failed to marshal response", err, b)
-		}
-
-		w.Write(b)
-	}))
+		return res, nil
+	})
 }
 
-func (m *MockRequest) URL(t *testing.T) *url.URL {
-	u, err := url.Parse(m.server.URL)
-	if err != nil {
-		t.Fatal("Failed to parse url", err)
-	}
-
-	return u
-}
-
-func (m *MockRequest) Close() {
-	m.server.Close()
+func (m *MockRequest) URL() *url.URL {
+	return baseURL.ResolveReference(&url.URL{Path: m.Path})
 }
