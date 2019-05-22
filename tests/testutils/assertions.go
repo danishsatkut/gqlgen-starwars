@@ -29,7 +29,9 @@ func AssertGraphQLErrors(t *testing.T, res *httptest.ResponseRecorder, errs []st
 		t.Errorf("Failed parsing graphql response: %v", err)
 	}
 
-	assert.Equal(t, len(errs), len(gqlResponse.Errors), "Error count mismatch")
+	if len(errs) != len(gqlResponse.Errors) {
+		t.Fatal("Error count mismatch: ", gqlResponse.Errors)
+	}
 
 	for i, e := range gqlResponse.Errors {
 		assert.Equal(t, errs[i], e.Message, "Error mismatch")

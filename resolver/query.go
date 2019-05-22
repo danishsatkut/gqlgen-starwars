@@ -6,6 +6,8 @@ import (
 
 	"github.com/peterhellberg/swapi"
 	"github.com/pkg/errors"
+
+	"gqlgen-starwars/utils"
 )
 
 type queryResolver struct{ *Resolver }
@@ -25,14 +27,24 @@ func (r *queryResolver) Character(ctx context.Context, id string) (*swapi.Person
 }
 
 func (r *queryResolver) Film(ctx context.Context, id string) (*swapi.Film, error) {
+	logger := utils.GetLogger(ctx)
+
 	filmId, err := strconv.Atoi(id)
 	if err != nil {
-		return nil, err
+		logger.WithError(err).Error("Failed to parse film id")
+
+		return nil, errors.New("Invalid film id")
 	}
 
 	film, err := r.client.Film(filmId)
 	if err != nil {
-		return nil, errors.New("Failed to fetch film")
+		logger.WithError(err).Error("Failed to fetch film")
+
+		return nil, errors.New("Something went wrong!")
+	}
+
+	if film.URL == "" {
+		return nil, errors.New("Film not found!")
 	}
 
 	return &film, nil
