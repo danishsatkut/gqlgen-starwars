@@ -12,6 +12,7 @@ import (
 
 	"gqlgen-starwars"
 	"gqlgen-starwars/resolver"
+	"gqlgen-starwars/utils"
 )
 
 type Config struct {
@@ -55,12 +56,11 @@ func NewGraphQlHandler(options ...Option) http.Handler {
 func loggerMiddleware(l *logrus.Logger) handler.Option {
 	return handler.RequestMiddleware(func(ctx context.Context, next func(ctx context.Context) []byte) []byte {
 		rctx := graphql.GetRequestContext(ctx)
-
 		logger := l.WithField("request_id", uuid.New())
+		ctx = utils.WithLogger(ctx, logger)
+
 		logger.WithField("query", rctx.RawQuery).WithField("variables", rctx.Variables).Info("Executing GraphQL query")
-
 		res := next(ctx)
-
 		logger.WithField("errors", len(rctx.Errors)).Info("Finished query execution")
 
 		return res
