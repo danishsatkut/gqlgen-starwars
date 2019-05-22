@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const baseURL = "http://localhost:9999"
+var baseURL = &url.URL{Scheme: "http", Host: "localhost:9999"}
 
 type MockRequest struct {
 	StatusCode      int
@@ -21,18 +21,17 @@ type MockRequest struct {
 
 func NewMockRequest(method string, path string, status int) *MockRequest {
 	return &MockRequest{
-		Method: method,
-		Path: path,
+		Method:     method,
+		Path:       path,
 		StatusCode: status,
 	}
 }
 
-// RespondWith starts a local test server that will return the specified response.
-// The caller should call Close when finished, to shut it down.
+// RespondWith registers a responder for the mock request path that will return the specified response.
 func (m *MockRequest) RespondWith(t *testing.T, jsonResponse interface{}) {
 	t.Helper()
 
-	httpmock.RegisterResponder(m.Method, m.URL(t).String(), func(req *http.Request) (*http.Response, error) {
+	httpmock.RegisterResponder(m.Method, m.URL().String(), func(req *http.Request) (*http.Response, error) {
 		// Validate Request Headers
 		if m.RequestHeaders != nil {
 			for key, value := range m.RequestHeaders {
@@ -56,13 +55,6 @@ func (m *MockRequest) RespondWith(t *testing.T, jsonResponse interface{}) {
 	})
 }
 
-func (m *MockRequest) URL(t *testing.T) *url.URL {
-	u, err := url.Parse(baseURL)
-	if err != nil {
-		t.Errorf("Failed to parse base url: %v", err)
-	}
-
-	u.Path = m.Path
-
-	return u
+func (m *MockRequest) URL() *url.URL {
+	return baseURL.ResolveReference(&url.URL{Path: m.Path})
 }

@@ -21,7 +21,7 @@ func TestFilmQuery(t *testing.T) {
 		m := testutils.NewMockRequest("GET", "/api/films/1", http.StatusOK)
 		m.RespondWith(t, swapi.Film{Title: "Good Movie"})
 
-		c := testutils.SwapiClient(m.URL(t))
+		c := testutils.SwapiClient(m.URL())
 
 		query := `query { film(id: \"1\") { name } }`
 		req := testutils.NewGraphQLRequest(t, query)
@@ -47,7 +47,7 @@ func TestFilmQuery(t *testing.T) {
 		m := testutils.NewMockRequest("GET", "/api/films/1", http.StatusInternalServerError)
 		m.RespondWith(t, "")
 
-		c := testutils.SwapiClient(m.URL(t))
+		c := testutils.SwapiClient(m.URL())
 
 		query := `query { film(id: \"1\") { name } }`
 		req := testutils.NewGraphQLRequest(t, query)
@@ -74,7 +74,7 @@ func TestFilmQuery(t *testing.T) {
 		m2 := testutils.NewMockRequest("GET", "/api/people/2", http.StatusOK)
 		m2.RespondWith(t, swapi.Person{Name: "John Smith"})
 
-		c := testutils.SwapiClient(m1.URL(t))
+		c := testutils.SwapiClient(m1.URL())
 
 		query := `query { film(id: \"1\") { name } character(id: \"2\") { name } }`
 		req := testutils.NewGraphQLRequest(t, query)
