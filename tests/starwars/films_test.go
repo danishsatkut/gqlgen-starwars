@@ -9,7 +9,7 @@ import (
 	"github.com/jarcoal/httpmock"
 	"github.com/peterhellberg/swapi"
 
-	"gqlgen-starwars/handlers"
+	"gqlgen-starwars/server/handlers"
 	"gqlgen-starwars/tests/testutils"
 )
 
