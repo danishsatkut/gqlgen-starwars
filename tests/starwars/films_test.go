@@ -1,7 +1,6 @@
 package starwars
 
 import (
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -20,7 +19,7 @@ func TestFilmQuery(t *testing.T) {
 		defer httpmock.Deactivate()
 
 		m := testutils.NewMockRequest("GET", "/api/films/1", http.StatusOK)
-		m.RespondWith(t, swapi.Film{Title: "Good Movie", URL: fmt.Sprintf("http://example.com/%v/", m.Path)})
+		m.RespondWith(t, swapi.Film{Title: "Good Movie", URL: m.ResourceURL()})
 
 		c := testutils.SwapiClient(m.URL())
 
@@ -70,10 +69,10 @@ func TestFilmQuery(t *testing.T) {
 		defer httpmock.Deactivate()
 
 		m1 := testutils.NewMockRequest("GET", "/api/films/1", http.StatusOK)
-		m1.RespondWith(t, swapi.Film{Title: "Good Movie", URL: fmt.Sprintf("http://example.com/%v/", m1.Path)})
+		m1.RespondWith(t, swapi.Film{Title: "Good Movie", URL: m1.ResourceURL()})
 
 		m2 := testutils.NewMockRequest("GET", "/api/people/2", http.StatusOK)
-		m2.RespondWith(t, swapi.Person{Name: "John Smith"})
+		m2.RespondWith(t, swapi.Person{Name: "John Smith", URL: m2.ResourceURL()})
 
 		c := testutils.SwapiClient(m1.URL())
 
