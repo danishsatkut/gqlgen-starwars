@@ -26,6 +26,10 @@ func (r *queryResolver) Character(ctx context.Context, id string) (*swapi.Person
 		return nil, errors.Wrapf(err, "failed to fetch person with id: %v", personId)
 	}
 
+	if person.URL == "" {
+		return nil, errors.NewResourceNotFoundError("Character not found", "Character", id)
+	}
+
 	return &person, nil
 }
 
