@@ -1,6 +1,7 @@
 package testutils
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 	"testing"
@@ -58,4 +59,10 @@ func (m *MockRequest) RespondWith(t *testing.T, jsonResponse interface{}) {
 
 func (m *MockRequest) URL() *url.URL {
 	return baseURL.ResolveReference(&url.URL{Path: m.Path})
+}
+
+func (m *MockRequest) ResourceURL() string {
+	// "http://example.com/%v/"
+
+	return fmt.Sprintf("%v/%v/", baseURL.String(), m.Path)
 }

@@ -2,25 +2,32 @@ package resolver
 
 import (
 	"context"
-	"strconv"
 
 	"github.com/peterhellberg/swapi"
-	"github.com/pkg/errors"
 
+	"gqlgen-starwars/errors"
 	"gqlgen-starwars/utils"
 )
 
 type queryResolver struct{ *Resolver }
 
 func (r *queryResolver) Character(ctx context.Context, id string) (*swapi.Person, error) {
-	personId, err := strconv.Atoi(id)
+	logger := utils.GetLogger(ctx)
+
+	personId, err := utils.ParseId(ctx, id)
 	if err != nil {
-		return nil, errors.WithMessagef(err, "Invalid id: %v", id)
+		return nil, err
 	}
 
 	person, err := r.client.Person(personId)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to fetch person with id: %v", personId)
+		logger.WithError(err).Error("Failed to fetch person")
+
+		return nil, errors.NewAPIError(err)
+	}
+
+	if person.URL == "" {
+		return nil, errors.NewResourceNotFoundError("Character not found", "Character", id)
 	}
 
 	return &person, nil
@@ -29,22 +36,20 @@ func (r *queryResolver) Character(ctx context.Context, id string) (*swapi.Person
 func (r *queryResolver) Film(ctx context.Context, id string) (*swapi.Film, error) {
 	logger := utils.GetLogger(ctx)
 
-	filmId, err := strconv.Atoi(id)
+	filmId, err := utils.ParseId(ctx, id)
 	if err != nil {
-		logger.WithError(err).Error("Failed to parse film id")
-
-		return nil, errors.New("Invalid film id")
+		return nil, err
 	}
 
 	film, err := r.client.Film(filmId)
 	if err != nil {
 		logger.WithError(err).Error("Failed to fetch film")
 
-		return nil, errors.New("Something went wrong!")
+		return nil, errors.NewAPIError(err)
 	}
 
 	if film.URL == "" {
-		return nil, errors.New("Film not found!")
+		return nil, errors.NewResourceNotFoundError("Film not found", "Film", id)
 	}
 
 	return &film, nil

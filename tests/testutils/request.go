@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"gqlgen-starwars/handlers"
+	"gqlgen-starwars/server/handlers"
 )
 
 func NewGraphQLRequest(t *testing.T, query string) *http.Request {

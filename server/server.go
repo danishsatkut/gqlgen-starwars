@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"os"
 
-	"gqlgen-starwars/handlers"
+	"gqlgen-starwars/server/handlers"
 
 	"github.com/99designs/gqlgen/handler"
 )

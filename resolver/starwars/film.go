@@ -2,10 +2,10 @@ package starwars
 
 import (
 	"context"
-	"log"
 
 	"github.com/peterhellberg/swapi"
 
+	"gqlgen-starwars/errors"
 	"gqlgen-starwars/utils"
 )
 
@@ -18,7 +18,7 @@ func NewFilmResolver(client *swapi.Client) *filmResolver {
 }
 
 func (*filmResolver) ID(ctx context.Context, f *swapi.Film) (string, error) {
-	return utils.ID(f.URL)
+	return utils.ID(ctx, f.URL)
 }
 
 func (*filmResolver) Name(ctx context.Context, f *swapi.Film) (string, error) {
@@ -26,19 +26,24 @@ func (*filmResolver) Name(ctx context.Context, f *swapi.Film) (string, error) {
 }
 
 func (r *filmResolver) Characters(ctx context.Context, f *swapi.Film) ([]*swapi.Person, error) {
+	logger := utils.GetLogger(ctx)
 	characters := make([]*swapi.Person, 0, len(f.CharacterURLs))
 
 	for _, url := range f.CharacterURLs {
 		id, err := utils.ResourceId(string(url))
 		if err != nil {
-			return nil, err
+			logger.WithError(err).Error("Failed to parse id from url")
+
+			return nil, errors.NewParsingError(err)
 		}
 
-		log.Print("Fetching character: ", id)
+		logger.WithField("id", id).Debug("Fetching character")
 
 		p, err := r.client.Person(id)
 		if err != nil {
-			return nil, err
+			logger.WithError(err).Error("Failed to fetch person")
+
+			return nil, errors.NewAPIError(err)
 		}
 
 		characters = append(characters, &p)
