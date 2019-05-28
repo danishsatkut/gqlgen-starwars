@@ -11,6 +11,7 @@ const (
 	UserInputError = "BAD_USER_INPUT"
 	ServerError    = "INTERNAL_SERVER_ERROR"
 	NotFoundError  = "NOT_FOUND"
+	APIError       = "API_ERROR"
 )
 
 func NewUserInputError(message string, argument string) error {
@@ -44,10 +45,19 @@ func NewResourceNotFoundError(message string, resourceName string, resourceId st
 	return NewGraphQLError(message, ext)
 }
 
+func NewAPIError(err error) error {
+	ext := map[string]interface{}{
+		"code":  APIError,
+		"error": err.Error(),
+	}
+
+	return NewGraphQLError("Something went wrong!", ext)
+}
+
 func New(message string) error {
 	return errors.New(message)
 }
 
 func Wrapf(err error, message string, args ...interface{}) error {
-	return errors.Wrapf(err, message)
+	return errors.Wrapf(err, message, args)
 }

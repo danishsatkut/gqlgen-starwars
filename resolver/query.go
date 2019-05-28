@@ -23,7 +23,9 @@ func (r *queryResolver) Character(ctx context.Context, id string) (*swapi.Person
 
 	person, err := r.client.Person(personId)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to fetch person with id: %v", personId)
+		logger.WithError(err).Error("Failed to fetch person")
+
+		return nil, errors.NewAPIError(err)
 	}
 
 	if person.URL == "" {
@@ -47,7 +49,7 @@ func (r *queryResolver) Film(ctx context.Context, id string) (*swapi.Film, error
 	if err != nil {
 		logger.WithError(err).Error("Failed to fetch film")
 
-		return nil, errors.New("Something went wrong!")
+		return nil, errors.NewAPIError(err)
 	}
 
 	if film.URL == "" {
