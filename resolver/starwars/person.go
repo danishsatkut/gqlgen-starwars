@@ -2,7 +2,6 @@ package starwars
 
 import (
 	"context"
-	"log"
 
 	"github.com/peterhellberg/swapi"
 
@@ -34,7 +33,7 @@ func (r *personResolver) Films(ctx context.Context, p *swapi.Person) ([]*swapi.F
 			return nil, errors.NewParsingError(err)
 		}
 
-		log.Print("Fetching film: ", id)
+		logger.WithField("id", id).Debug("Fetching film")
 
 		film, err := r.client.Film(id)
 		if err != nil {

@@ -41,7 +41,7 @@ func Logger(l *logrus.Logger) Option {
 func NewGraphQlHandler(options ...Option) http.Handler {
 	cfg := &Config{
 		swapiClient: swapi.DefaultClient,
-		logger:      logrus.New(),
+		logger:      utils.DefaultLogger(),
 	}
 
 	for _, option := range options {
