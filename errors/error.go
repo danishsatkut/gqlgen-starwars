@@ -73,5 +73,5 @@ func New(message string) error {
 }
 
 func Wrapf(err error, message string, args ...interface{}) error {
-	return errors.Wrapf(err, message, args)
+	return errors.Wrapf(err, message, args...)
 }
