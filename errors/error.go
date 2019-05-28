@@ -10,6 +10,7 @@ import (
 const (
 	UserInputError = "BAD_USER_INPUT"
 	ServerError    = "INTERNAL_SERVER_ERROR"
+	NotFoundError  = "NOT_FOUND"
 )
 
 func NewUserInputError(message string, argument string) error {
@@ -29,6 +30,18 @@ func NewServerError(err interface{}, stack string) error {
 	}
 
 	return NewGraphQLError("Internal Server Error", ext)
+}
+
+func NewResourceNotFoundError(message string, resourceName string, resourceId string) error {
+	ext := map[string]interface{}{
+		"code": NotFoundError,
+		"resource": map[string]string{
+			"id":   resourceId,
+			"name": resourceName,
+		},
+	}
+
+	return NewGraphQLError(message, ext)
 }
 
 func New(message string) error {
