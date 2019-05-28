@@ -12,6 +12,7 @@ const (
 	ServerError    = "INTERNAL_SERVER_ERROR"
 	NotFoundError  = "NOT_FOUND"
 	APIError       = "API_ERROR"
+	ParsingError   = "PARSING_ERROR"
 )
 
 func NewUserInputError(message string, argument string) error {
@@ -51,6 +52,19 @@ func NewAPIError(err error) error {
 		"error": err.Error(),
 	}
 
+	return NewGenericError(ext)
+}
+
+func NewParsingError(err error) error {
+	ext := map[string]interface{}{
+		"code":  ParsingError,
+		"error": err.Error(),
+	}
+
+	return NewGenericError(ext)
+}
+
+func NewGenericError(ext map[string]interface{}) error {
 	return NewGraphQLError("Something went wrong!", ext)
 }
 

@@ -6,6 +6,7 @@ import (
 
 	"github.com/peterhellberg/swapi"
 
+	"gqlgen-starwars/errors"
 	"gqlgen-starwars/utils"
 )
 
@@ -22,19 +23,24 @@ func (*personResolver) ID(ctx context.Context, p *swapi.Person) (string, error) 
 }
 
 func (r *personResolver) Films(ctx context.Context, p *swapi.Person) ([]*swapi.Film, error) {
+	logger := utils.GetLogger(ctx)
 	films := make([]*swapi.Film, 0, len(p.FilmURLs))
 
 	for _, url := range p.FilmURLs {
 		id, err := utils.ResourceId(string(url))
 		if err != nil {
-			return nil, err
+			logger.WithError(err).Error("Failed to parse id from url")
+
+			return nil, errors.NewParsingError(err)
 		}
 
 		log.Print("Fetching film: ", id)
 
 		film, err := r.client.Film(id)
 		if err != nil {
-			return nil, err
+			logger.WithError(err).Error("Failed to fetch person")
+
+			return nil, errors.NewAPIError(err)
 		}
 
 		films = append(films, &film)
