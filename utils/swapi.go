@@ -23,13 +23,3 @@ func ResourceId(url string) (int, error) {
 
 	return id, err
 }
-
-// ID returns graphql ID field value for a url
-func ID(url string) (string, error) {
-	id, err := ResourceId(url)
-	if err != nil {
-		return "", err
-	}
-
-	return strconv.Itoa(id), err
-}

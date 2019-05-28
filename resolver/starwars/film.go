@@ -19,7 +19,7 @@ func NewFilmResolver(client *swapi.Client) *filmResolver {
 }
 
 func (*filmResolver) ID(ctx context.Context, f *swapi.Film) (string, error) {
-	return utils.ID(f.URL)
+	return utils.ID(ctx, f.URL)
 }
 
 func (*filmResolver) Name(ctx context.Context, f *swapi.Film) (string, error) {
