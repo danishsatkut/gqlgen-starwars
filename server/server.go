@@ -5,7 +5,11 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
+
 	"gqlgen-starwars/server/handlers"
+	"gqlgen-starwars/server/middlewares"
 
 	"github.com/99designs/gqlgen/handler"
 )
@@ -18,9 +22,13 @@ func main() {
 		port = defaultPort
 	}
 
-	http.Handle("/", handler.Playground("GraphQL playground", "/query"))
-	http.Handle("/query", handlers.NewGraphQlHandler())
+	router := chi.NewRouter()
+
+	router.Use(middleware.Logger)
+
+	router.Handle("/", handler.Playground("GraphQL playground", "/query"))
+	router.With(middlewares.RequestID).Handle("/query", handlers.NewGraphQlHandler())
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	log.Fatal(http.ListenAndServe(":"+port, router))
 }
