@@ -2,7 +2,10 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"os"
+	"runtime/debug"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/handler"
@@ -11,6 +14,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"gqlgen-starwars"
+	"gqlgen-starwars/errors"
 	"gqlgen-starwars/resolver"
 	"gqlgen-starwars/utils"
 )
@@ -50,7 +54,8 @@ func NewGraphQlHandler(options ...Option) http.Handler {
 
 	return handler.GraphQL(
 		gqlgen_starwars.NewExecutableSchema(config),
-		loggerMiddleware(cfg.logger))
+		loggerMiddleware(cfg.logger),
+		panicMiddleware())
 }
 
 func loggerMiddleware(l *logrus.Logger) handler.Option {
@@ -64,5 +69,17 @@ func loggerMiddleware(l *logrus.Logger) handler.Option {
 		logger.WithField("errors", len(rctx.Errors)).Info("Finished query execution")
 
 		return res
+	})
+}
+
+func panicMiddleware() handler.Option {
+	return handler.RecoverFunc(func(ctx context.Context, err interface{}) (userMessage error) {
+		fmt.Fprintln(os.Stderr, err)
+		fmt.Fprintln(os.Stderr)
+
+		errStack := string(debug.Stack())
+		fmt.Fprintln(os.Stderr, errStack)
+
+		return errors.NewServerError(err, errStack)
 	})
 }
