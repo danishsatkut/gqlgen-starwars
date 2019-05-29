@@ -16,7 +16,7 @@ func ResourceId(url string) (int, error) {
 
 	s := strings.Split(url, "/")
 
-	id, err := strconv.Atoi(s[len(s) - 2])
+	id, err := strconv.Atoi(s[len(s)-2])
 	if err != nil {
 		return 0, err
 	}

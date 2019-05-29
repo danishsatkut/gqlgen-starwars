@@ -62,7 +62,5 @@ func (m *MockRequest) URL() *url.URL {
 }
 
 func (m *MockRequest) ResourceURL() string {
-	// "http://example.com/%v/"
-
 	return fmt.Sprintf("%v/%v/", baseURL.String(), m.Path)
 }

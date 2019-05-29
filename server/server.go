@@ -28,7 +28,7 @@ func main() {
 	router := chi.NewRouter()
 
 	middleware.DefaultLogger = middleware.RequestLogger(&middleware.DefaultLogFormatter{
-		Logger: logger,
+		Logger:  logger,
 		NoColor: false,
 	})
 	router.Use(middleware.Logger)
