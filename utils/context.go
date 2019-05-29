@@ -6,11 +6,9 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type contextKey struct {
-	name string
-}
+type contextKey string
 
-var loggerKey = &contextKey{name: "logger"}
+var loggerKey = contextKey("logger")
 
 func WithLogger(ctx context.Context, logger *logrus.Entry) context.Context {
 	return context.WithValue(ctx, loggerKey, logger)

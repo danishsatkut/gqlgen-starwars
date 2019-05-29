@@ -30,13 +30,18 @@ func main() {
 	router := chi.NewRouter()
 
 	// Use logger and heartbeat middlewares
-	router.Use(middleware.Logger, middleware.Heartbeat("/ping"))
+	router.Use(middleware.Heartbeat("/ping"))
 
 	// GraphQL Playground
 	router.Handle("/playground", handler.Playground("GraphQL playground", "/"))
 
 	// GraphQL Query Endpoint
-	router.With(middlewares.RequestID, middlewares.Auth).Handle("/", handlers.NewGraphQlHandler(handlers.Logger(logger)))
+	router.With(
+		middlewares.RequestID,
+		middlewares.Auth,
+		middleware.Logger,
+		middlewares.LogEntry(logger),
+	).Handle("/", handlers.NewGraphQlHandler(handlers.Logger(logger)))
 
 	// TODO: Gracefully shutdown server
 	logger.Infof("connect to http://localhost:%s/playground for GraphQL playground", port)
