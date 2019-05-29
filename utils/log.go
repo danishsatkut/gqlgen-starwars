@@ -2,7 +2,9 @@ package utils
 
 import "github.com/sirupsen/logrus"
 
-func DefaultLogger() *logrus.Logger {
+var DefaultLogger = newLogger()
+
+func newLogger() *logrus.Logger {
 	logger := logrus.New()
 	logger.SetLevel(logrus.DebugLevel)
 

@@ -26,22 +26,22 @@ func (*filmResolver) Name(ctx context.Context, f *swapi.Film) (string, error) {
 }
 
 func (r *filmResolver) Characters(ctx context.Context, f *swapi.Film) ([]*swapi.Person, error) {
-	logger := utils.GetLogger(ctx)
+	entry := utils.GetLogEntry(ctx)
 	characters := make([]*swapi.Person, 0, len(f.CharacterURLs))
 
 	for _, url := range f.CharacterURLs {
 		id, err := utils.ResourceId(string(url))
 		if err != nil {
-			logger.WithError(err).Error("Failed to parse id from url")
+			entry.WithError(err).Error("Failed to parse id from url")
 
 			return nil, errors.NewParsingError(err)
 		}
 
-		logger.WithField("id", id).Debug("Fetching character")
+		entry.WithField("id", id).Debug("Fetching character")
 
 		p, err := r.client.Person(id)
 		if err != nil {
-			logger.WithError(err).Error("Failed to fetch person")
+			entry.WithError(err).Error("Failed to fetch person")
 
 			return nil, errors.NewAPIError(err)
 		}

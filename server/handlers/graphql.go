@@ -9,7 +9,6 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/handler"
-	"github.com/go-chi/chi/middleware"
 	"github.com/peterhellberg/swapi"
 	"github.com/sirupsen/logrus"
 
@@ -41,7 +40,7 @@ func Logger(l *logrus.Logger) Option {
 func NewGraphQlHandler(options ...Option) http.Handler {
 	cfg := &Config{
 		swapiClient: swapi.DefaultClient,
-		logger:      utils.DefaultLogger(),
+		logger:      utils.DefaultLogger,
 	}
 
 	for _, option := range options {
@@ -54,15 +53,13 @@ func NewGraphQlHandler(options ...Option) http.Handler {
 
 	return handler.GraphQL(
 		gqlgen_starwars.NewExecutableSchema(config),
-		loggerMiddleware(cfg.logger),
+		loggerMiddleware(),
 		panicMiddleware())
 }
 
-func loggerMiddleware(l *logrus.Logger) handler.Option {
+func loggerMiddleware() handler.Option {
 	return handler.RequestMiddleware(func(ctx context.Context, next func(ctx context.Context) []byte) []byte {
-		logger := l.WithField("request_id", middleware.GetReqID(ctx))
-		ctx = utils.WithLogger(ctx, logger)
-
+		logger := utils.GetLogEntry(ctx)
 		rctx := graphql.GetRequestContext(ctx)
 
 		logger.WithField("query", rctx.RawQuery).WithField("variables", rctx.Variables).Info("Executing GraphQL query")

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net/http"
 	"os"
 
@@ -23,19 +22,28 @@ func main() {
 		port = defaultPort
 	}
 
-	logger := utils.DefaultLogger()
+	logger := utils.DefaultLogger
+
+	// Change middleware logger to use logrus logger
+	middlewares.SetDefaultLogger(logger)
 
 	router := chi.NewRouter()
 
-	middleware.DefaultLogger = middleware.RequestLogger(&middleware.DefaultLogFormatter{
-		Logger:  logger,
-		NoColor: false,
-	})
-	router.Use(middleware.Logger)
+	// Use logger and heartbeat middlewares
+	router.Use(middleware.Heartbeat("/ping"))
 
-	router.Handle("/", handler.Playground("GraphQL playground", "/query"))
-	router.With(middlewares.RequestID, middlewares.Auth).Handle("/query", handlers.NewGraphQlHandler(handlers.Logger(logger)))
+	// GraphQL Playground
+	router.Handle("/playground", handler.Playground("GraphQL playground", "/"))
 
-	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
-	log.Fatal(http.ListenAndServe(":"+port, router))
+	// GraphQL Query Endpoint
+	router.With(
+		middlewares.RequestID,
+		middlewares.Auth,
+		middleware.Logger,
+		middlewares.LogEntry(logger),
+	).Handle("/", handlers.NewGraphQlHandler(handlers.Logger(logger)))
+
+	// TODO: Gracefully shutdown server
+	logger.Infof("connect to http://localhost:%s/playground for GraphQL playground", port)
+	logger.Fatal(http.ListenAndServe(":"+port, router))
 }
