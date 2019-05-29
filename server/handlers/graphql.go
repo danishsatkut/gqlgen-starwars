@@ -12,8 +12,8 @@ import (
 	"github.com/peterhellberg/swapi"
 	"github.com/sirupsen/logrus"
 
-	"gqlgen-starwars"
 	"gqlgen-starwars/errors"
+	"gqlgen-starwars/generated"
 	"gqlgen-starwars/loaders"
 	"gqlgen-starwars/resolver"
 	"gqlgen-starwars/utils"
@@ -48,12 +48,12 @@ func NewGraphQlHandler(options ...Option) http.Handler {
 		option(cfg)
 	}
 
-	config := gqlgen_starwars.Config{
+	config := generated.Config{
 		Resolvers: resolver.NewRootResolver(cfg.swapiClient),
 	}
 
 	return handler.GraphQL(
-		gqlgen_starwars.NewExecutableSchema(config),
+		generated.NewExecutableSchema(config),
 		loggerMiddleware(),
 		panicMiddleware(),
 		dataloaderMiddleware(cfg.swapiClient))

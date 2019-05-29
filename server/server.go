@@ -1,29 +1,29 @@
-package main
+package server
 
 import (
 	"net/http"
-	"os"
+	"time"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	"github.com/sirupsen/logrus"
+
+	"github.com/99designs/gqlgen/handler"
 
 	"gqlgen-starwars/server/handlers"
 	"gqlgen-starwars/server/middlewares"
-	"gqlgen-starwars/utils"
-
-	"github.com/99designs/gqlgen/handler"
 )
 
-const defaultPort = "8080"
+// Tweak configuration values here.
+const (
+	addr              = ":8080"
+	readHeaderTimeout = 1 * time.Second
+	writeTimeout      = 300 * time.Second
+	idleTimeout       = 300 * time.Second
+	maxHeaderBytes    = http.DefaultMaxHeaderBytes
+)
 
-func main() {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = defaultPort
-	}
-
-	logger := utils.DefaultLogger
-
+func NewServer(logger *logrus.Logger) *http.Server {
 	// Change middleware logger to use logrus logger
 	middlewares.SetDefaultLogger(logger)
 
@@ -43,7 +43,15 @@ func main() {
 		middlewares.LogEntry(logger),
 	).Handle("/", handlers.NewGraphQlHandler(handlers.Logger(logger)))
 
-	// TODO: Gracefully shutdown server
-	logger.Infof("connect to http://localhost:%s/playground for GraphQL playground", port)
-	logger.Fatal(http.ListenAndServe(":"+port, router))
+	// Configure the HTTP server.
+	s := &http.Server{
+		Addr:              addr,
+		Handler:           router,
+		ReadHeaderTimeout: readHeaderTimeout,
+		WriteTimeout:      writeTimeout,
+		IdleTimeout:       idleTimeout,
+		MaxHeaderBytes:    maxHeaderBytes,
+	}
+
+	return s
 }
