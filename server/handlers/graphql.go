@@ -9,7 +9,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/handler"
-	"github.com/google/uuid"
+	"github.com/go-chi/chi/middleware"
 	"github.com/peterhellberg/swapi"
 	"github.com/sirupsen/logrus"
 
@@ -60,9 +60,10 @@ func NewGraphQlHandler(options ...Option) http.Handler {
 
 func loggerMiddleware(l *logrus.Logger) handler.Option {
 	return handler.RequestMiddleware(func(ctx context.Context, next func(ctx context.Context) []byte) []byte {
-		rctx := graphql.GetRequestContext(ctx)
-		logger := l.WithField("request_id", uuid.New())
+		logger := l.WithField("request_id", middleware.GetReqID(ctx))
 		ctx = utils.WithLogger(ctx, logger)
+
+		rctx := graphql.GetRequestContext(ctx)
 
 		logger.WithField("query", rctx.RawQuery).WithField("variables", rctx.Variables).Info("Executing GraphQL query")
 		res := next(ctx)
