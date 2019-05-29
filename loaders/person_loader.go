@@ -10,10 +10,10 @@ import (
 	"github.com/peterhellberg/swapi"
 )
 
-// FilmLoaderConfig captures the config to create a new FilmLoader
-type FilmLoaderConfig struct {
+// PersonLoaderConfig captures the config to create a new PersonLoader
+type PersonLoaderConfig struct {
 	// Fetch is a method that provides the data for the loader
-	Fetch func(keys []int) ([]*swapi.Film, []error)
+	Fetch func(keys []int) ([]*swapi.Person, []error)
 
 	// Wait is how long wait before sending a batch
 	Wait time.Duration
@@ -22,19 +22,19 @@ type FilmLoaderConfig struct {
 	MaxBatch int
 }
 
-// NewFilmLoader creates a new FilmLoader given a fetch, wait, and maxBatch
-func NewFilmLoader(config FilmLoaderConfig) *FilmLoader {
-	return &FilmLoader{
+// NewPersonLoader creates a new PersonLoader given a fetch, wait, and maxBatch
+func NewPersonLoader(config PersonLoaderConfig) *PersonLoader {
+	return &PersonLoader{
 		fetch:    config.Fetch,
 		wait:     config.Wait,
 		maxBatch: config.MaxBatch,
 	}
 }
 
-// FilmLoader batches and caches requests
-type FilmLoader struct {
+// PersonLoader batches and caches requests
+type PersonLoader struct {
 	// this method provides the data for the loader
-	fetch func(keys []int) ([]*swapi.Film, []error)
+	fetch func(keys []int) ([]*swapi.Person, []error)
 
 	// how long to done before sending a batch
 	wait time.Duration
@@ -45,53 +45,53 @@ type FilmLoader struct {
 	// INTERNAL
 
 	// lazily created cache
-	cache map[int]*swapi.Film
+	cache map[int]*swapi.Person
 
 	// the current batch. keys will continue to be collected until timeout is hit,
 	// then everything will be sent to the fetch method and out to the listeners
-	batch *filmLoaderBatch
+	batch *personLoaderBatch
 
 	// mutex to prevent races
 	mu sync.Mutex
 }
 
-type filmLoaderBatch struct {
+type personLoaderBatch struct {
 	keys    []int
-	data    []*swapi.Film
+	data    []*swapi.Person
 	error   []error
 	closing bool
 	done    chan struct{}
 }
 
-// Load a Film by key, batching and caching will be applied automatically
-func (l *FilmLoader) Load(key int) (*swapi.Film, error) {
+// Load a Person by key, batching and caching will be applied automatically
+func (l *PersonLoader) Load(key int) (*swapi.Person, error) {
 	return l.LoadThunk(key)()
 }
 
-// LoadThunk returns a function that when called will block waiting for a Film.
+// LoadThunk returns a function that when called will block waiting for a Person.
 // This method should be used if you want one goroutine to make requests to many
 // different data loaders without blocking until the thunk is called.
-func (l *FilmLoader) LoadThunk(key int) func() (*swapi.Film, error) {
+func (l *PersonLoader) LoadThunk(key int) func() (*swapi.Person, error) {
 	l.mu.Lock()
 	if it, ok := l.cache[key]; ok {
 		log.Println("Film Cache Hit: ", key)
 
 		l.mu.Unlock()
-		return func() (*swapi.Film, error) {
+		return func() (*swapi.Person, error) {
 			return it, nil
 		}
 	}
 	if l.batch == nil {
-		l.batch = &filmLoaderBatch{done: make(chan struct{})}
+		l.batch = &personLoaderBatch{done: make(chan struct{})}
 	}
 	batch := l.batch
 	pos := batch.keyIndex(l, key)
 	l.mu.Unlock()
 
-	return func() (*swapi.Film, error) {
+	return func() (*swapi.Person, error) {
 		<-batch.done
 
-		var data *swapi.Film
+		var data *swapi.Person
 		if pos < len(batch.data) {
 			data = batch.data[pos]
 		}
@@ -116,46 +116,45 @@ func (l *FilmLoader) LoadThunk(key int) func() (*swapi.Film, error) {
 
 // LoadAll fetches many keys at once. It will be broken into appropriate sized
 // sub batches depending on how the loader is configured
-func (l *FilmLoader) LoadAll(keys []int) ([]*swapi.Film, []error) {
-	results := make([]func() (*swapi.Film, error), len(keys))
+func (l *PersonLoader) LoadAll(keys []int) ([]*swapi.Person, []error) {
+	results := make([]func() (*swapi.Person, error), len(keys))
 
 	for i, key := range keys {
 		results[i] = l.LoadThunk(key)
 	}
 
-	films := make([]*swapi.Film, len(keys))
+	persons := make([]*swapi.Person, len(keys))
 	errors := make([]error, len(keys))
 	for i, thunk := range results {
-		films[i], errors[i] = thunk()
+		persons[i], errors[i] = thunk()
 	}
-	return films, errors
+	return persons, errors
 }
 
-// LoadAllThunk returns a function that when called will block waiting for a Films.
+// LoadAllThunk returns a function that when called will block waiting for a Persons.
 // This method should be used if you want one goroutine to make requests to many
 // different data loaders without blocking until the thunk is called.
-func (l *FilmLoader) LoadAllThunk(keys []int) func() ([]*swapi.Film, []error) {
-	results := make([]func() (*swapi.Film, error), len(keys))
+func (l *PersonLoader) LoadAllThunk(keys []int) func() ([]*swapi.Person, []error) {
+	results := make([]func() (*swapi.Person, error), len(keys))
 	for i, key := range keys {
 		results[i] = l.LoadThunk(key)
 	}
-	return func() ([]*swapi.Film, []error) {
-		films := make([]*swapi.Film, len(keys))
+	return func() ([]*swapi.Person, []error) {
+		persons := make([]*swapi.Person, len(keys))
 		errors := make([]error, len(keys))
 		for i, thunk := range results {
-			films[i], errors[i] = thunk()
+			persons[i], errors[i] = thunk()
 		}
-		return films, errors
+		return persons, errors
 	}
 }
 
 // Prime the cache with the provided key and value. If the key already exists, no change is made
 // and false is returned.
 // (To forcefully prime the cache, clear the key first with loader.clear(key).prime(key, value).)
-func (l *FilmLoader) Prime(key int, value *swapi.Film) bool {
+func (l *PersonLoader) Prime(key int, value *swapi.Person) bool {
 	l.mu.Lock()
 	var found bool
-
 	if _, found = l.cache[key]; !found {
 		// make a copy when writing to the cache, its easy to pass a pointer in from a loop var
 		// and end up with the whole cache pointing to the same value.
@@ -167,22 +166,22 @@ func (l *FilmLoader) Prime(key int, value *swapi.Film) bool {
 }
 
 // Clear the value at key from the cache, if it exists
-func (l *FilmLoader) Clear(key int) {
+func (l *PersonLoader) Clear(key int) {
 	l.mu.Lock()
 	delete(l.cache, key)
 	l.mu.Unlock()
 }
 
-func (l *FilmLoader) unsafeSet(key int, value *swapi.Film) {
+func (l *PersonLoader) unsafeSet(key int, value *swapi.Person) {
 	if l.cache == nil {
-		l.cache = map[int]*swapi.Film{}
+		l.cache = map[int]*swapi.Person{}
 	}
 	l.cache[key] = value
 }
 
 // keyIndex will return the location of the key in the batch, if its not found
 // it will add the key to the batch
-func (b *filmLoaderBatch) keyIndex(l *FilmLoader, key int) int {
+func (b *personLoaderBatch) keyIndex(l *PersonLoader, key int) int {
 	for i, existingKey := range b.keys {
 		if key == existingKey {
 			return i
@@ -206,7 +205,7 @@ func (b *filmLoaderBatch) keyIndex(l *FilmLoader, key int) int {
 	return pos
 }
 
-func (b *filmLoaderBatch) startTimer(l *FilmLoader) {
+func (b *personLoaderBatch) startTimer(l *PersonLoader) {
 	time.Sleep(l.wait)
 	l.mu.Lock()
 
@@ -222,7 +221,7 @@ func (b *filmLoaderBatch) startTimer(l *FilmLoader) {
 	b.end(l)
 }
 
-func (b *filmLoaderBatch) end(l *FilmLoader) {
+func (b *personLoaderBatch) end(l *PersonLoader) {
 	b.data, b.error = l.fetch(b.keys)
 	close(b.done)
 }
