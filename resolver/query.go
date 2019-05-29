@@ -6,6 +6,7 @@ import (
 	"github.com/peterhellberg/swapi"
 
 	"gqlgen-starwars/errors"
+	"gqlgen-starwars/loaders"
 	"gqlgen-starwars/utils"
 )
 
@@ -21,7 +22,7 @@ func (r *queryResolver) Character(ctx context.Context, id string) (*swapi.Person
 		return nil, err
 	}
 
-	person, err := r.client.Person(personId)
+	person, err := loaders.GetPersonLoader(ctx).Load(personId)
 	if err != nil {
 		entry.WithError(err).Error("Failed to fetch person")
 
@@ -32,7 +33,7 @@ func (r *queryResolver) Character(ctx context.Context, id string) (*swapi.Person
 		return nil, errors.NewResourceNotFoundError("Character not found", "Character", id)
 	}
 
-	return &person, nil
+	return person, nil
 }
 
 func (r *queryResolver) Film(ctx context.Context, id string) (*swapi.Film, error) {
@@ -45,7 +46,7 @@ func (r *queryResolver) Film(ctx context.Context, id string) (*swapi.Film, error
 		return nil, err
 	}
 
-	film, err := r.client.Film(filmId)
+	film, err := loaders.GetFilmLoader(ctx).Load(filmId)
 	if err != nil {
 		entry.WithError(err).Error("Failed to fetch film")
 
@@ -56,5 +57,5 @@ func (r *queryResolver) Film(ctx context.Context, id string) (*swapi.Film, error
 		return nil, errors.NewResourceNotFoundError("Film not found", "Film", id)
 	}
 
-	return &film, nil
+	return film, nil
 }

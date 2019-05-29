@@ -74,7 +74,7 @@ func (l *PersonLoader) Load(key int) (*swapi.Person, error) {
 func (l *PersonLoader) LoadThunk(key int) func() (*swapi.Person, error) {
 	l.mu.Lock()
 	if it, ok := l.cache[key]; ok {
-		log.Println("Film Cache Hit: ", key)
+		log.Println("Cache Hit (PERSON): ", key)
 
 		l.mu.Unlock()
 		return func() (*swapi.Person, error) {

@@ -74,7 +74,7 @@ func (l *FilmLoader) Load(key int) (*swapi.Film, error) {
 func (l *FilmLoader) LoadThunk(key int) func() (*swapi.Film, error) {
 	l.mu.Lock()
 	if it, ok := l.cache[key]; ok {
-		log.Println("Film Cache Hit: ", key)
+		log.Println("Cache Hit (FILM): ", key)
 
 		l.mu.Unlock()
 		return func() (*swapi.Film, error) {
