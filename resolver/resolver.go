@@ -7,7 +7,7 @@ import (
 	"gqlgen-starwars/resolver/starwars"
 )
 
-type Resolver struct{
+type Resolver struct {
 	client *swapi.Client
 }
 
