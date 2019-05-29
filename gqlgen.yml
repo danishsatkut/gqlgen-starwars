@@ -5,6 +5,8 @@
 
 schema:
 - "schema/schema.graphql"
+- "schema/starwars/film.graphql"
+- "schema/starwars/person.graphql"
 
 exec:
   filename: generated.go

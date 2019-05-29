@@ -259,8 +259,8 @@ var parsedSchema = gqlparser.MustLoadSchema(
     film(id: ID!): Film!
     character(id: ID!): Person!
 }
-
-type Film {
+`},
+	&ast.Source{Name: "schema/starwars/film.graphql", Input: `type Film {
     id: ID!
     name: String!
     episodeId: Int!
@@ -268,8 +268,8 @@ type Film {
     producer: String!
     characters: [Person!]!
 }
-
-type Person {
+`},
+	&ast.Source{Name: "schema/starwars/person.graphql", Input: `type Person {
     id: ID!
     name: String!
     gender: String!
