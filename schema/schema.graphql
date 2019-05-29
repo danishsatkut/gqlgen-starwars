@@ -2,19 +2,3 @@ type Query {
     film(id: ID!): Film!
     character(id: ID!): Person!
 }
-
-type Film {
-    id: ID!
-    name: String!
-    episodeId: Int!
-    director: String!
-    producer: String!
-    characters: [Person!]!
-}
-
-type Person {
-    id: ID!
-    name: String!
-    gender: String!
-    films: [Film!]!
-}
