@@ -22,7 +22,7 @@ func main() {
 		port = defaultPort
 	}
 
-	logger := utils.DefaultLogger()
+	logger := utils.DefaultLogger
 
 	// Change middleware logger to use logrus logger
 	middlewares.SetDefaultLogger(logger)
