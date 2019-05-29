@@ -3,6 +3,7 @@
 package loaders
 
 import (
+	"log"
 	"sync"
 	"time"
 
@@ -73,6 +74,8 @@ func (l *FilmLoader) Load(key int) (*swapi.Film, error) {
 func (l *FilmLoader) LoadThunk(key int) func() (*swapi.Film, error) {
 	l.mu.Lock()
 	if it, ok := l.cache[key]; ok {
+		log.Println("Cache Hit: ", key)
+
 		l.mu.Unlock()
 		return func() (*swapi.Film, error) {
 			return it, nil
@@ -152,6 +155,7 @@ func (l *FilmLoader) LoadAllThunk(keys []int) func() ([]*swapi.Film, []error) {
 func (l *FilmLoader) Prime(key int, value *swapi.Film) bool {
 	l.mu.Lock()
 	var found bool
+
 	if _, found = l.cache[key]; !found {
 		// make a copy when writing to the cache, its easy to pass a pointer in from a loop var
 		// and end up with the whole cache pointing to the same value.
