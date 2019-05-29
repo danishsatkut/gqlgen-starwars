@@ -14,8 +14,10 @@ type queryResolver struct{ *Resolver }
 func (r *queryResolver) Character(ctx context.Context, id string) (*swapi.Person, error) {
 	entry := utils.GetLogEntry(ctx)
 
-	personId, err := utils.ParseId(ctx, id)
+	personId, err := utils.ParseId(id)
 	if err != nil {
+		utils.GetLogEntry(ctx).WithError(err).Error("Failed to parse character id")
+
 		return nil, err
 	}
 
@@ -36,8 +38,10 @@ func (r *queryResolver) Character(ctx context.Context, id string) (*swapi.Person
 func (r *queryResolver) Film(ctx context.Context, id string) (*swapi.Film, error) {
 	entry := utils.GetLogEntry(ctx)
 
-	filmId, err := utils.ParseId(ctx, id)
+	filmId, err := utils.ParseId(id)
 	if err != nil {
+		utils.GetLogEntry(ctx).WithError(err).Error("Failed to parse film id")
+
 		return nil, err
 	}
 

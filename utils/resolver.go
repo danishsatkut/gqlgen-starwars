@@ -8,11 +8,9 @@ import (
 	"gqlgen-starwars/errors"
 )
 
-func ParseId(ctx context.Context, id string) (int, error) {
+func ParseId(id string) (int, error) {
 	resourceId, err := strconv.Atoi(id)
 	if err != nil {
-		GetLogEntry(ctx).WithError(err).Error("Failed to parse id")
-
 		return 0, errors.NewUserInputError(fmt.Sprintf("Invalid id: %v", id), "id")
 	}
 

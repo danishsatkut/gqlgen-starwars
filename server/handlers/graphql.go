@@ -14,6 +14,7 @@ import (
 
 	"gqlgen-starwars"
 	"gqlgen-starwars/errors"
+	"gqlgen-starwars/loaders"
 	"gqlgen-starwars/resolver"
 	"gqlgen-starwars/utils"
 )
@@ -54,7 +55,8 @@ func NewGraphQlHandler(options ...Option) http.Handler {
 	return handler.GraphQL(
 		gqlgen_starwars.NewExecutableSchema(config),
 		loggerMiddleware(),
-		panicMiddleware())
+		panicMiddleware(),
+		dataloaderMiddleware(cfg.swapiClient))
 }
 
 func loggerMiddleware() handler.Option {
@@ -80,4 +82,14 @@ func panicMiddleware() handler.Option {
 
 		return errors.NewServerError(err, errStack)
 	})
+}
+
+func dataloaderMiddleware(client *swapi.Client) handler.Option {
+	fn := func(ctx context.Context, next func(ctx context.Context) []byte) []byte {
+		ctx = loaders.Initialize(client).Attach(ctx)
+
+		return next(ctx)
+	}
+
+	return handler.RequestMiddleware(fn)
 }
