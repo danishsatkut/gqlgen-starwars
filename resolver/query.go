@@ -12,7 +12,7 @@ import (
 type queryResolver struct{ *Resolver }
 
 func (r *queryResolver) Character(ctx context.Context, id string) (*swapi.Person, error) {
-	logger := utils.GetLogger(ctx)
+	entry := utils.GetLogEntry(ctx)
 
 	personId, err := utils.ParseId(ctx, id)
 	if err != nil {
@@ -21,7 +21,7 @@ func (r *queryResolver) Character(ctx context.Context, id string) (*swapi.Person
 
 	person, err := r.client.Person(personId)
 	if err != nil {
-		logger.WithError(err).Error("Failed to fetch person")
+		entry.WithError(err).Error("Failed to fetch person")
 
 		return nil, errors.NewAPIError(err)
 	}
@@ -34,7 +34,7 @@ func (r *queryResolver) Character(ctx context.Context, id string) (*swapi.Person
 }
 
 func (r *queryResolver) Film(ctx context.Context, id string) (*swapi.Film, error) {
-	logger := utils.GetLogger(ctx)
+	entry := utils.GetLogEntry(ctx)
 
 	filmId, err := utils.ParseId(ctx, id)
 	if err != nil {
@@ -43,7 +43,7 @@ func (r *queryResolver) Film(ctx context.Context, id string) (*swapi.Film, error
 
 	film, err := r.client.Film(filmId)
 	if err != nil {
-		logger.WithError(err).Error("Failed to fetch film")
+		entry.WithError(err).Error("Failed to fetch film")
 
 		return nil, errors.NewAPIError(err)
 	}

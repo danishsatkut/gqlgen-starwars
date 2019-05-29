@@ -22,22 +22,22 @@ func (*personResolver) ID(ctx context.Context, p *swapi.Person) (string, error) 
 }
 
 func (r *personResolver) Films(ctx context.Context, p *swapi.Person) ([]*swapi.Film, error) {
-	logger := utils.GetLogger(ctx)
+	entry := utils.GetLogEntry(ctx)
 	films := make([]*swapi.Film, 0, len(p.FilmURLs))
 
 	for _, url := range p.FilmURLs {
 		id, err := utils.ResourceId(string(url))
 		if err != nil {
-			logger.WithError(err).Error("Failed to parse id from url")
+			entry.WithError(err).Error("Failed to parse id from url")
 
 			return nil, errors.NewParsingError(err)
 		}
 
-		logger.WithField("id", id).Debug("Fetching film")
+		entry.WithField("id", id).Debug("Fetching film")
 
 		film, err := r.client.Film(id)
 		if err != nil {
-			logger.WithError(err).Error("Failed to fetch person")
+			entry.WithError(err).Error("Failed to fetch person")
 
 			return nil, errors.NewAPIError(err)
 		}

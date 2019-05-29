@@ -10,13 +10,13 @@ type contextKey string
 
 var loggerKey = contextKey("logger")
 
-func WithLogger(ctx context.Context, logger *logrus.Entry) context.Context {
-	return context.WithValue(ctx, loggerKey, logger)
+func WithLogEntry(ctx context.Context, entry *logrus.Entry) context.Context {
+	return context.WithValue(ctx, loggerKey, entry)
 }
 
-func GetLogger(ctx context.Context) *logrus.Entry {
-	if logger, ok := ctx.Value(loggerKey).(*logrus.Entry); ok {
-		return logger
+func GetLogEntry(ctx context.Context) *logrus.Entry {
+	if entry, ok := ctx.Value(loggerKey).(*logrus.Entry); ok {
+		return entry
 	}
 
 	return logrus.NewEntry(logrus.New())

@@ -22,7 +22,7 @@ func LogEntry(l *logrus.Logger) func(http.Handler) http.Handler {
 			ctx := r.Context()
 
 			logger := l.WithField("request_id", middleware.GetReqID(ctx))
-			ctx = utils.WithLogger(ctx, logger)
+			ctx = utils.WithLogEntry(ctx, logger)
 
 			next.ServeHTTP(w, r.WithContext(ctx))
 		}

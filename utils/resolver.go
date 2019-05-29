@@ -11,7 +11,7 @@ import (
 func ParseId(ctx context.Context, id string) (int, error) {
 	resourceId, err := strconv.Atoi(id)
 	if err != nil {
-		GetLogger(ctx).WithError(err).Error("Failed to parse id")
+		GetLogEntry(ctx).WithError(err).Error("Failed to parse id")
 
 		return 0, errors.NewUserInputError(fmt.Sprintf("Invalid id: %v", id), "id")
 	}
@@ -23,7 +23,7 @@ func ParseId(ctx context.Context, id string) (int, error) {
 func ID(ctx context.Context, url string) (string, error) {
 	id, err := ResourceId(url)
 	if err != nil {
-		GetLogger(ctx).Error("Failed to extract id from resource url")
+		GetLogEntry(ctx).Error("Failed to extract id from resource url")
 
 		return "", errors.NewParsingError(err)
 	}
