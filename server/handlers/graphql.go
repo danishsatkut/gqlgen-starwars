@@ -10,7 +10,6 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/handler"
 	"github.com/peterhellberg/swapi"
-	"github.com/sirupsen/logrus"
 
 	"gqlgen-starwars/errors"
 	"gqlgen-starwars/generated"
@@ -19,34 +18,13 @@ import (
 	"gqlgen-starwars/utils"
 )
 
-type Config struct {
-	swapiClient *swapi.Client
-	logger      *logrus.Logger
-}
-
-type Option func(cfg *Config)
-
-func SwapiClient(c *swapi.Client) Option {
-	return func(cfg *Config) {
-		cfg.swapiClient = c
-	}
-}
-
-func Logger(l *logrus.Logger) Option {
-	return func(cfg *Config) {
-		cfg.logger = l
-	}
-}
-
 func NewGraphQlHandler(options ...Option) http.Handler {
-	cfg := &Config{
+	cfg := &config{
 		swapiClient: swapi.DefaultClient,
 		logger:      utils.DefaultLogger,
 	}
 
-	for _, option := range options {
-		option(cfg)
-	}
+	cfg.update(options...)
 
 	config := generated.Config{
 		Resolvers: resolver.NewRootResolver(cfg.swapiClient),
