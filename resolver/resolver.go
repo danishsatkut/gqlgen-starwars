@@ -3,7 +3,7 @@ package resolver
 import (
 	"github.com/peterhellberg/swapi"
 
-	"gqlgen-starwars"
+	"gqlgen-starwars/generated"
 	"gqlgen-starwars/resolver/starwars"
 )
 
@@ -15,14 +15,14 @@ func NewRootResolver(client *swapi.Client) *Resolver {
 	return &Resolver{client}
 }
 
-func (r *Resolver) Query() gqlgen_starwars.QueryResolver {
+func (r *Resolver) Query() generated.QueryResolver {
 	return &queryResolver{r}
 }
 
-func (r *Resolver) Film() gqlgen_starwars.FilmResolver {
+func (r *Resolver) Film() generated.FilmResolver {
 	return starwars.NewFilmResolver(r.client)
 }
 
-func (r *Resolver) Person() gqlgen_starwars.PersonResolver {
+func (r *Resolver) Person() generated.PersonResolver {
 	return starwars.NewPersonResolver(r.client)
 }
