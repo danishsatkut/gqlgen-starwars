@@ -1,6 +1,6 @@
 sep = =============
 
-travis: setup tests;
+travis: setup check_gqlgen tests;
 
 setup: ; $(info $(M) $(sep) Performing setup $(sep))
 	go mod download
@@ -11,6 +11,10 @@ server: gqlgen ; $(info $(M) $(sep) Starting dev server $(sep))
 gqlgen: ; $(info $(M) $(sep) Generating graphql server code $(sep))
 	gqlgen version
 	gqlgen generate --config ./gqlgen.yml
+
+check_gqlgen: ; $(info $(M) $(sep) Verify generated code $(sep))
+	git diff --exit-code -- ./generated/exec.go
+	git diff --exit-code -- ./generated/model.go
 
 tests: gqlgen ; $(info $(M) $(sep) Running tests $(sep))
 	go test ./...
