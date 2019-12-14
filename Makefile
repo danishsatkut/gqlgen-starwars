@@ -21,7 +21,7 @@ gqlgen: ; $(info $(M) $(sep) Generating graphql server code $(sep))
 	gqlgen version
 	gqlgen generate --config ./gqlgen.yml
 
-check_gqlgen: ; $(info $(M) $(sep) Verify generated code $(sep))
+check_gqlgen: gqlgen ; $(info $(M) $(sep) Verify generated code $(sep))
 	git diff --exit-code -- ./generated/exec.go
 	git diff --exit-code -- ./generated/model.go
 
