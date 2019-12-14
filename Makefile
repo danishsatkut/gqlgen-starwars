@@ -4,6 +4,7 @@ travis: setup check_gqlgen tests;
 
 setup: ; $(info $(M) $(sep) Performing setup $(sep))
 	go mod download
+	go get github.com/99designs/gqlgen@v0.9.0
 
 server: gqlgen ; $(info $(M) $(sep) Starting dev server $(sep))
 	go run ./main.go
