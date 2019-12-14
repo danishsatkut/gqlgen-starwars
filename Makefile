@@ -2,6 +2,14 @@ sep = =============
 
 travis: setup check_gqlgen tests;
 
+build: clean check_gqlgen tests ; $(info $(M) $(sep) Building project $(sep))
+	go version
+	go env
+	go build -o ./bin/graphql main.go
+
+clean: ; $(info $(M) $(sep) Cleaning project $(sep))
+	$(RM) ./bin/graphql
+
 setup: ; $(info $(M) $(sep) Performing setup $(sep))
 	go mod download
 	go get github.com/99designs/gqlgen@v0.9.0
@@ -20,4 +28,4 @@ check_gqlgen: ; $(info $(M) $(sep) Verify generated code $(sep))
 tests: gqlgen ; $(info $(M) $(sep) Running tests $(sep))
 	go test ./...
 
-.PHONY: gqlgen travis tests setup server
+.PHONY: build check_gqlgen clean gqlgen server setup tests travis
