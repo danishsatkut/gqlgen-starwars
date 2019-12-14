@@ -2,7 +2,7 @@ sep = =============
 
 travis: setup check_gqlgen tests;
 
-build: clean check_gqlgen tests ; $(info $(M) $(sep) Building project $(sep))
+build: clean setup check_gqlgen tests ; $(info $(M) $(sep) Building project $(sep))
 	go version
 	go env
 	go build -o ./bin/graphql main.go
