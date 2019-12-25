@@ -7,6 +7,7 @@ import (
 
 	"gqlgen-starwars/errors"
 	"gqlgen-starwars/loaders"
+	swapi2 "gqlgen-starwars/swapi"
 	"gqlgen-starwars/utils"
 )
 
@@ -31,7 +32,7 @@ func (r *filmResolver) Characters(ctx context.Context, f *swapi.Film) ([]*swapi.
 	ids := make([]int, 0, len(f.CharacterURLs))
 
 	for _, url := range f.CharacterURLs {
-		id, err := utils.ResourceId(string(url))
+		id, err := swapi2.ResourceId(string(url))
 		if err != nil {
 			entry.WithError(err).Error("Failed to parse id from url")
 

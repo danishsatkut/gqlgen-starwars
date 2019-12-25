@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"gqlgen-starwars/errors"
+	"gqlgen-starwars/swapi"
 )
 
 func ParseId(id string) (int, error) {
@@ -19,7 +20,7 @@ func ParseId(id string) (int, error) {
 
 // ID returns graphql ID field value for a url
 func ID(ctx context.Context, url string) (string, error) {
-	id, err := ResourceId(url)
+	id, err := swapi.ResourceId(url)
 	if err != nil {
 		GetLogEntry(ctx).Error("Failed to extract id from resource url")
 
