@@ -20,7 +20,7 @@ func NewPersonResolver(client *swapi.Client) *personResolver {
 }
 
 func (*personResolver) ID(ctx context.Context, p *swapi.Person) (string, error) {
-	return utils.ID(ctx, p.URL)
+	return ID(ctx, p.URL)
 }
 
 func (r *personResolver) Films(ctx context.Context, p *swapi.Person) ([]*swapi.Film, error) {

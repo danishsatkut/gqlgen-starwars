@@ -2,6 +2,8 @@ package resolver
 
 import (
 	"context"
+	"fmt"
+	"strconv"
 
 	"github.com/peterhellberg/swapi"
 
@@ -15,7 +17,7 @@ type queryResolver struct{ *Resolver }
 func (r *queryResolver) Character(ctx context.Context, id string) (*swapi.Person, error) {
 	entry := utils.GetLogEntry(ctx)
 
-	personId, err := utils.ParseId(id)
+	personId, err := parseId(id)
 	if err != nil {
 		utils.GetLogEntry(ctx).WithError(err).Error("Failed to parse character id")
 
@@ -39,7 +41,7 @@ func (r *queryResolver) Character(ctx context.Context, id string) (*swapi.Person
 func (r *queryResolver) Film(ctx context.Context, id string) (*swapi.Film, error) {
 	entry := utils.GetLogEntry(ctx)
 
-	filmId, err := utils.ParseId(id)
+	filmId, err := parseId(id)
 	if err != nil {
 		utils.GetLogEntry(ctx).WithError(err).Error("Failed to parse film id")
 
@@ -58,4 +60,13 @@ func (r *queryResolver) Film(ctx context.Context, id string) (*swapi.Film, error
 	}
 
 	return film, nil
+}
+
+func parseId(id string) (int, error) {
+	resourceId, err := strconv.Atoi(id)
+	if err != nil {
+		return 0, errors.NewUserInputError(fmt.Sprintf("Invalid id: %v", id), "id")
+	}
+
+	return resourceId, nil
 }
