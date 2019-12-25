@@ -9,8 +9,8 @@ schema:
 - "schema/starwars/person.graphql"
 
 exec:
-  filename: generated/exec.go
-  package: generated
+  filename: resolver/generated.go
+  package: resolver
 
 # Let gqlgen know where to put the generated models (if any)
 model:
