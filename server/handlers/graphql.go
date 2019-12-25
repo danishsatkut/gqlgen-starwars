@@ -15,13 +15,12 @@ import (
 	"gqlgen-starwars/loaders"
 	"gqlgen-starwars/resolver"
 	"gqlgen-starwars/server/middlewares"
-	"gqlgen-starwars/utils"
 )
 
 func NewGraphQlHandler(options ...Option) http.Handler {
 	cfg := &config{
 		swapiClient: swapi.DefaultClient,
-		logger:      utils.DefaultLogger,
+		logger:      middlewares.DefaultLogger,
 	}
 
 	cfg.update(options...)

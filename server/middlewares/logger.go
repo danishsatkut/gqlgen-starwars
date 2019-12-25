@@ -45,3 +45,12 @@ func GetLogEntry(ctx context.Context) *logrus.Entry {
 
 	return logrus.NewEntry(logrus.New())
 }
+
+var DefaultLogger = newLogger()
+
+func newLogger() *logrus.Logger {
+	logger := logrus.New()
+	logger.SetLevel(logrus.DebugLevel)
+
+	return logger
+}
