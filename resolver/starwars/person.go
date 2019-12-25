@@ -7,8 +7,8 @@ import (
 
 	"gqlgen-starwars/errors"
 	"gqlgen-starwars/loaders"
+	"gqlgen-starwars/server/middlewares"
 	swapi2 "gqlgen-starwars/swapi"
-	"gqlgen-starwars/utils"
 )
 
 type personResolver struct {
@@ -24,7 +24,7 @@ func (*personResolver) ID(ctx context.Context, p *swapi.Person) (string, error) 
 }
 
 func (r *personResolver) Films(ctx context.Context, p *swapi.Person) ([]*swapi.Film, error) {
-	entry := utils.GetLogEntry(ctx)
+	entry := middlewares.GetLogEntry(ctx)
 	ids := make([]int, 0, len(p.FilmURLs))
 
 	for _, url := range p.FilmURLs {

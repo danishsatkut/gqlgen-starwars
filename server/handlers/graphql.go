@@ -14,6 +14,7 @@ import (
 	"gqlgen-starwars/errors"
 	"gqlgen-starwars/loaders"
 	"gqlgen-starwars/resolver"
+	"gqlgen-starwars/server/middlewares"
 	"gqlgen-starwars/utils"
 )
 
@@ -38,7 +39,7 @@ func NewGraphQlHandler(options ...Option) http.Handler {
 
 func loggerMiddleware() handler.Option {
 	return handler.RequestMiddleware(func(ctx context.Context, next func(ctx context.Context) []byte) []byte {
-		logger := utils.GetLogEntry(ctx)
+		logger := middlewares.GetLogEntry(ctx)
 		rctx := graphql.GetRequestContext(ctx)
 
 		logger.WithField("query", rctx.RawQuery).WithField("variables", rctx.Variables).Info("Executing GraphQL query")

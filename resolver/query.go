@@ -9,17 +9,17 @@ import (
 
 	"gqlgen-starwars/errors"
 	"gqlgen-starwars/loaders"
-	"gqlgen-starwars/utils"
+	"gqlgen-starwars/server/middlewares"
 )
 
 type queryResolver struct{ *Resolver }
 
 func (r *queryResolver) Character(ctx context.Context, id string) (*swapi.Person, error) {
-	entry := utils.GetLogEntry(ctx)
+	entry := middlewares.GetLogEntry(ctx)
 
 	personId, err := parseId(id)
 	if err != nil {
-		utils.GetLogEntry(ctx).WithError(err).Error("Failed to parse character id")
+		middlewares.GetLogEntry(ctx).WithError(err).Error("Failed to parse character id")
 
 		return nil, err
 	}
@@ -39,11 +39,11 @@ func (r *queryResolver) Character(ctx context.Context, id string) (*swapi.Person
 }
 
 func (r *queryResolver) Film(ctx context.Context, id string) (*swapi.Film, error) {
-	entry := utils.GetLogEntry(ctx)
+	entry := middlewares.GetLogEntry(ctx)
 
 	filmId, err := parseId(id)
 	if err != nil {
-		utils.GetLogEntry(ctx).WithError(err).Error("Failed to parse film id")
+		middlewares.GetLogEntry(ctx).WithError(err).Error("Failed to parse film id")
 
 		return nil, err
 	}

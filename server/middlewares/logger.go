@@ -1,12 +1,11 @@
 package middlewares
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/go-chi/chi/middleware"
 	"github.com/sirupsen/logrus"
-
-	"gqlgen-starwars/utils"
 )
 
 func SetDefaultLogger(logger *logrus.Logger) {
@@ -22,7 +21,7 @@ func LogEntry(l *logrus.Logger) func(http.Handler) http.Handler {
 			ctx := r.Context()
 
 			logger := l.WithField("request_id", middleware.GetReqID(ctx))
-			ctx = utils.WithLogEntry(ctx, logger)
+			ctx = WithLogEntry(ctx, logger)
 
 			next.ServeHTTP(w, r.WithContext(ctx))
 		}
@@ -31,4 +30,18 @@ func LogEntry(l *logrus.Logger) func(http.Handler) http.Handler {
 	}
 
 	return mwr
+}
+
+var loggerKey = contextKey("logger")
+
+func WithLogEntry(ctx context.Context, entry *logrus.Entry) context.Context {
+	return context.WithValue(ctx, loggerKey, entry)
+}
+
+func GetLogEntry(ctx context.Context) *logrus.Entry {
+	if entry, ok := ctx.Value(loggerKey).(*logrus.Entry); ok {
+		return entry
+	}
+
+	return logrus.NewEntry(logrus.New())
 }
