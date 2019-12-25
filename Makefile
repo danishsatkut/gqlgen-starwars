@@ -12,7 +12,7 @@ clean: ; $(info $(M) $(sep) Cleaning project $(sep))
 
 setup: ; $(info $(M) $(sep) Performing setup $(sep))
 	go mod download
-	go get github.com/99designs/gqlgen@v0.9.0
+	go get github.com/99designs/gqlgen@v0.10.2
 
 server: gqlgen ; $(info $(M) $(sep) Starting dev server $(sep))
 	go run ./main.go
