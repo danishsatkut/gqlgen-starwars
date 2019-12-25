@@ -14,8 +14,8 @@ exec:
 
 # Let gqlgen know where to put the generated models (if any)
 model:
-  filename: generated/model.go
-  package: generated
+  filename: resolver/model/generated.go
+  package: model
 
 models:
   Film:
