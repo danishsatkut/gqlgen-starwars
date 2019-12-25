@@ -14,13 +14,13 @@ import (
 	"gqlgen-starwars/errors"
 	"gqlgen-starwars/loaders"
 	"gqlgen-starwars/resolver"
-	"gqlgen-starwars/utils"
+	"gqlgen-starwars/server/middlewares"
 )
 
 func NewGraphQlHandler(options ...Option) http.Handler {
 	cfg := &config{
 		swapiClient: swapi.DefaultClient,
-		logger:      utils.DefaultLogger,
+		logger:      middlewares.DefaultLogger,
 	}
 
 	cfg.update(options...)
@@ -38,7 +38,7 @@ func NewGraphQlHandler(options ...Option) http.Handler {
 
 func loggerMiddleware() handler.Option {
 	return handler.RequestMiddleware(func(ctx context.Context, next func(ctx context.Context) []byte) []byte {
-		logger := utils.GetLogEntry(ctx)
+		logger := middlewares.GetLogEntry(ctx)
 		rctx := graphql.GetRequestContext(ctx)
 
 		logger.WithField("query", rctx.RawQuery).WithField("variables", rctx.Variables).Info("Executing GraphQL query")

@@ -2,11 +2,11 @@ package main
 
 import (
 	"gqlgen-starwars/server"
-	"gqlgen-starwars/utils"
+	"gqlgen-starwars/server/middlewares"
 )
 
 func main() {
-	logger := utils.DefaultLogger
+	logger := middlewares.DefaultLogger
 
 	s := server.NewServer(logger)
 
