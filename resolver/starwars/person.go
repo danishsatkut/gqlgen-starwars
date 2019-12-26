@@ -8,7 +8,7 @@ import (
 	"gqlgen-starwars/errors"
 	"gqlgen-starwars/loaders"
 	"gqlgen-starwars/server/middlewares"
-	swapi2 "gqlgen-starwars/swapi"
+	swapihelper "gqlgen-starwars/swapi"
 )
 
 type personResolver struct {
@@ -24,11 +24,43 @@ func (*personResolver) ID(ctx context.Context, p *swapi.Person) (string, error) 
 }
 
 func (r *personResolver) Films(ctx context.Context, p *swapi.Person) ([]*swapi.Film, error) {
-	entry := middlewares.GetLogEntry(ctx)
-	ids := make([]int, 0, len(p.FilmURLs))
-
+	urls := make([]string, 0, len(p.FilmURLs))
 	for _, url := range p.FilmURLs {
-		id, err := swapi2.ResourceId(string(url))
+		urls = append(urls, string(url))
+	}
+
+	films, err := getFilms(ctx, urls)
+	if err != nil {
+		return nil, err
+	}
+
+	if isFieldRequested(ctx, "characters") && len(films) > 0 {
+		urlMap := make(map[string]interface{}, 0)
+		for _, film := range films {
+			for _, url := range film.CharacterURLs {
+				urlMap[string(url)] = nil
+			}
+		}
+
+		urls := make([]string, 0, len(urlMap))
+		for url, _ := range urlMap {
+			urls = append(urls, url)
+		}
+
+		// Load and Prime cache for characters
+		// NOTE: This will block until all characters are loaded.
+		getCharacters(ctx, urls)
+	}
+
+	return films, nil
+}
+
+func getCharacters(ctx context.Context, urls []string) ([]*swapi.Person, error) {
+	entry := middlewares.GetLogEntry(ctx)
+	ids := make([]int, 0, len(urls))
+
+	for _, url := range urls {
+		id, err := swapihelper.ResourceId(url)
 		if err != nil {
 			entry.WithError(err).Error("Failed to parse id from url")
 
@@ -38,10 +70,10 @@ func (r *personResolver) Films(ctx context.Context, p *swapi.Person) ([]*swapi.F
 		ids = append(ids, id)
 	}
 
-	films, errs := loaders.GetFilmLoader(ctx).LoadAll(ids)
+	characters, errs := loaders.GetPersonLoader(ctx).LoadAll(ids)
 	if len(errs) > 0 && errs[0] != nil {
-		return nil, errs[0]
+		return nil, errors.NewAPIError(errs[0])
 	}
 
-	return films, nil
+	return characters, nil
 }
