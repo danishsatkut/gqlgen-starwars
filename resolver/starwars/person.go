@@ -3,7 +3,6 @@ package starwars
 import (
 	"context"
 
-	"github.com/99designs/gqlgen/graphql"
 	"github.com/peterhellberg/swapi"
 
 	"gqlgen-starwars/errors"
@@ -25,25 +24,14 @@ func (*personResolver) ID(ctx context.Context, p *swapi.Person) (string, error) 
 }
 
 func (r *personResolver) Films(ctx context.Context, p *swapi.Person) ([]*swapi.Film, error) {
-	entry := middlewares.GetLogEntry(ctx)
-	ids := make([]int, 0, len(p.FilmURLs))
-
-	entry.Debugf("Resolving films for: %s", p.Name)
-
+	urls := make([]string, 0, len(p.FilmURLs))
 	for _, url := range p.FilmURLs {
-		id, err := swapihelper.ResourceId(string(url))
-		if err != nil {
-			entry.WithError(err).Error("Failed to parse id from url")
-
-			return nil, errors.NewParsingError(err)
-		}
-
-		ids = append(ids, id)
+		urls = append(urls, string(url))
 	}
 
-	films, errs := loaders.GetFilmLoader(ctx).LoadAll(ids)
-	if len(errs) > 0 && errs[0] != nil {
-		return nil, errs[0]
+	films, err := getFilms(ctx, urls)
+	if err != nil {
+		return nil, err
 	}
 
 	if isFieldRequested(ctx, "characters") && len(films) > 0 {
@@ -63,12 +51,25 @@ func (r *personResolver) Films(ctx context.Context, p *swapi.Person) ([]*swapi.F
 	return films, nil
 }
 
-func isFieldRequested(ctx context.Context, field string) bool {
-	for _, f := range graphql.CollectAllFields(ctx) {
-		if f == field {
-			return true
+func getCharacters(ctx context.Context, urls []string) ([]*swapi.Person, error) {
+	entry := middlewares.GetLogEntry(ctx)
+	ids := make([]int, 0, len(urls))
+
+	for _, url := range urls {
+		id, err := swapihelper.ResourceId(url)
+		if err != nil {
+			entry.WithError(err).Error("Failed to parse id from url")
+
+			return nil, errors.NewParsingError(err)
 		}
+
+		ids = append(ids, id)
 	}
 
-	return false
+	characters, errs := loaders.GetPersonLoader(ctx).LoadAll(ids)
+	if len(errs) > 0 && errs[0] != nil {
+		return nil, errors.NewAPIError(errs[0])
+	}
+
+	return characters, nil
 }

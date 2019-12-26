@@ -4,6 +4,8 @@ import (
 	"context"
 	"strconv"
 
+	"github.com/99designs/gqlgen/graphql"
+
 	"gqlgen-starwars/errors"
 	"gqlgen-starwars/server/middlewares"
 	"gqlgen-starwars/swapi"
@@ -19,4 +21,14 @@ func ID(ctx context.Context, url string) (string, error) {
 	}
 
 	return strconv.Itoa(id), nil
+}
+
+func isFieldRequested(ctx context.Context, field string) bool {
+	for _, f := range graphql.CollectAllFields(ctx) {
+		if f == field {
+			return true
+		}
+	}
+
+	return false
 }
