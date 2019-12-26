@@ -35,12 +35,16 @@ func (r *personResolver) Films(ctx context.Context, p *swapi.Person) ([]*swapi.F
 	}
 
 	if isFieldRequested(ctx, "characters") && len(films) > 0 {
-		urls := make([]string, 0, len(films) * len(films[0].CharacterURLs))
-
+		urlMap := make(map[string]interface{}, 0)
 		for _, film := range films {
 			for _, url := range film.CharacterURLs {
-				urls = append(urls, string(url))
+				urlMap[string(url)] = nil
 			}
+		}
+
+		urls := make([]string, 0, len(urlMap))
+		for url, _ := range urlMap {
+			urls = append(urls, url)
 		}
 
 		// Load and Prime cache for characters

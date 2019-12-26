@@ -39,11 +39,16 @@ func (r *filmResolver) Characters(ctx context.Context, f *swapi.Film) ([]*swapi.
 	}
 
 	if isFieldRequested(ctx, "films") && len(characters) > 0 {
-		urls := make([]string, 0, len(characters) * len(characters[0].FilmURLs))
+		urlMap := make(map[string]interface{}, 0)
 		for _, character := range characters {
 			for _, url := range character.FilmURLs {
-				urls = append(urls, string(url))
+				urlMap[string(url)] = nil
 			}
+		}
+
+		urls := make([]string, 0, len(urlMap))
+		for url, _ := range urlMap {
+			urls = append(urls, url)
 		}
 
 		// Load and Prime cache
