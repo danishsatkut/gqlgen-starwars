@@ -11,7 +11,7 @@ import (
 type contextKey string
 
 const (
-	filmLoaderKey contextKey = "film_loader"
+	filmLoaderKey   contextKey = "film_loader"
 	personLoaderKey contextKey = "person_loader"
 )
 
@@ -30,7 +30,7 @@ func (c *Collection) Attach(ctx context.Context) context.Context {
 func Initialize(client *swapi.Client) *Collection {
 	return &Collection{
 		lookup: map[contextKey]interface{}{
-			filmLoaderKey: newFilmLoader(client),
+			filmLoaderKey:   newFilmLoader(client),
 			personLoaderKey: newPersonLoader(client),
 		},
 	}
@@ -55,13 +55,11 @@ func GetPersonLoader(ctx context.Context) *PersonLoader {
 func newFilmLoader(client *swapi.Client) *FilmLoader {
 	return NewFilmLoader(FilmLoaderConfig{
 		Fetch: func(ids []int) ([]*swapi.Film, []error) {
-			log.Print("Total films: ", len(ids))
-
 			var (
-				n = len(ids)
-				films = make([]*swapi.Film, n)
+				n      = len(ids)
+				films  = make([]*swapi.Film, n)
 				errors = make([]error, n)
-				wg sync.WaitGroup
+				wg     sync.WaitGroup
 			)
 
 			wg.Add(n)
@@ -92,10 +90,10 @@ func newPersonLoader(client *swapi.Client) *PersonLoader {
 	return NewPersonLoader(PersonLoaderConfig{
 		Fetch: func(ids []int) ([]*swapi.Person, []error) {
 			var (
-				n = len(ids)
+				n      = len(ids)
 				people = make([]*swapi.Person, n)
-				errs = make([]error, n)
-				wg sync.WaitGroup
+				errs   = make([]error, n)
+				wg     sync.WaitGroup
 			)
 
 			wg.Add(n)
