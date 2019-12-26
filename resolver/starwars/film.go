@@ -8,7 +8,7 @@ import (
 	"gqlgen-starwars/errors"
 	"gqlgen-starwars/loaders"
 	"gqlgen-starwars/server/middlewares"
-	swapi2 "gqlgen-starwars/swapi"
+	swapihelper "gqlgen-starwars/swapi"
 )
 
 type filmResolver struct {
@@ -28,11 +28,20 @@ func (*filmResolver) Name(ctx context.Context, f *swapi.Film) (string, error) {
 }
 
 func (r *filmResolver) Characters(ctx context.Context, f *swapi.Film) ([]*swapi.Person, error) {
-	entry := middlewares.GetLogEntry(ctx)
-	ids := make([]int, 0, len(f.CharacterURLs))
-
+	urls := make([]string, 0, len(f.CharacterURLs))
 	for _, url := range f.CharacterURLs {
-		id, err := swapi2.ResourceId(string(url))
+		urls = append(urls, string(url))
+	}
+
+	return getCharacters(ctx, urls)
+}
+
+func getCharacters(ctx context.Context, urls []string) ([]*swapi.Person, error) {
+	entry := middlewares.GetLogEntry(ctx)
+	ids := make([]int, 0, len(urls))
+
+	for _, url := range urls {
+		id, err := swapihelper.ResourceId(url)
 		if err != nil {
 			entry.WithError(err).Error("Failed to parse id from url")
 
