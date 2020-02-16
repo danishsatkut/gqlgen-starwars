@@ -1,22 +1,49 @@
 package main
 
 import (
+	"context"
+	"os"
+	"os/signal"
+	"time"
+
 	"gqlgen-starwars/server"
 	"gqlgen-starwars/server/middlewares"
 )
 
 func main() {
-	logger := middlewares.DefaultLogger
+	var (
+		logger = middlewares.DefaultLogger
+		srv    = server.NewServer(logger)
+		wait   = 15 * time.Second
+	)
 
-	s := server.NewServer(logger)
+	logger.Infof("Listening for requests on %s", srv.Addr)
 
-	logger.Infof("Listening for requests on %s", s.Addr)
+	// Run our server in a goroutine so that it doesn't block.
+	go func() {
+		// Begin listening for requests.
+		if err := srv.ListenAndServe(); err != nil {
+			logger.WithError(err).Error("Failed to listen and serve")
+		}
+	}()
 
-	// Begin listening for requests.
-	if err := s.ListenAndServe(); err != nil {
-		logger.WithError(err).Error("Failed to listen and serve")
-	}
+	c := make(chan os.Signal, 1)
+	// We'll accept graceful shutdowns when quit via SIGINT (Ctrl+C)
+	// SIGKILL, SIGQUIT or SIGTERM (Ctrl+/) will not be caught.
+	signal.Notify(c, os.Interrupt)
 
-	// TODO: intercept shutdown signals for cleanup of connections.
+	// Block until we receive our signal.
+	<-c
+
+	// Create a deadline to wait for.
+	ctx, cancel := context.WithTimeout(context.Background(), wait)
+	defer cancel()
+	// Doesn't block if no connections, but will otherwise wait
+	// until the timeout deadline.
+	srv.Shutdown(ctx)
+	// Optionally, you could run srv.Shutdown in a goroutine and block on
+	// <-ctx.Done() if your application should wait for other services
+	// to finalize based on context cancellation.
 	logger.Info("Shutting down.")
+	os.Exit(0)
 }
