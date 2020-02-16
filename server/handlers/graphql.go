@@ -25,27 +25,9 @@ func NewGraphQlHandler(options ...Option) http.Handler {
 
 	cfg.update(options...)
 
-	complexity := resolver.ComplexityRoot{}
-
-	complexity.Query.Film = func(childComplexity int, id string) int {
-		return 25 + childComplexity
-	}
-
-	complexity.Query.Character = func(childComplexity int, id string) int {
-		return 25 + childComplexity
-	}
-
-	complexity.Film.Characters = func(childComplexity int) int {
-		return 50 + childComplexity
-	}
-
-	complexity.Person.Films = func(childComplexity int) int {
-		return 50 + childComplexity
-	}
-
 	config := resolver.Config{
 		Resolvers: resolver.NewRootResolver(cfg.swapiClient),
-		Complexity: complexity,
+		Complexity: resolver.NewComplexityRoot(),
 	}
 
 	return handler.GraphQL(
