@@ -5,6 +5,10 @@ const (
 	multipleResourceCost = 50
 )
 
+func ComplexityLimit() int {
+	return (singleResourceCost * 2) + (multipleResourceCost * 2)
+}
+
 func NewComplexityRoot() ComplexityRoot {
 	c := ComplexityRoot{}
 
