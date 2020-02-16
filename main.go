@@ -22,7 +22,7 @@ func main() {
 	// Run our server in a goroutine so that it doesn't block.
 	go func() {
 		// Begin listening for requests.
-		if err := srv.ListenAndServe(); err != nil {
+		if err := srv.ListenAndServe(); err != http.ErrServerClosed {
 			logger.WithError(err).Error("Failed to listen and serve")
 		}
 	}()
@@ -36,9 +36,11 @@ func main() {
 }
 
 func gracefulShutdown(srv *http.Server) error {
-	var wait = 15 * time.Second
+	var (
+		c    = make(chan os.Signal, 1)
+		wait = 15 * time.Second
+	)
 
-	c := make(chan os.Signal, 1)
 	// We'll accept graceful shutdowns when quit via SIGINT (Ctrl+C)
 	// SIGKILL, SIGQUIT or SIGTERM (Ctrl+/) will not be caught.
 	signal.Notify(c, os.Interrupt)
