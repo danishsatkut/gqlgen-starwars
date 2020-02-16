@@ -26,7 +26,7 @@ func NewGraphQlHandler(options ...Option) http.Handler {
 	cfg.update(options...)
 
 	config := resolver.Config{
-		Resolvers: resolver.NewRootResolver(cfg.swapiClient),
+		Resolvers:  resolver.NewRootResolver(cfg.swapiClient),
 		Complexity: resolver.NewComplexityRoot(),
 	}
 
