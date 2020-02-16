@@ -32,7 +32,7 @@ func NewGraphQlHandler(options ...Option) http.Handler {
 
 	return handler.GraphQL(
 		resolver.NewExecutableSchema(config),
-		handler.ComplexityLimit(10),
+		handler.ComplexityLimit(150),
 		loggerMiddleware(),
 		panicMiddleware(),
 		dataloaderMiddleware(cfg.swapiClient))
