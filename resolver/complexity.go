@@ -1,8 +1,8 @@
 package resolver
 
 const (
-	singleResourceCost   = 25
-	multipleResourceCost = 50
+	singleResourceCost   = 50
+	multipleResourceCost = 100
 )
 
 func ComplexityLimit() int {

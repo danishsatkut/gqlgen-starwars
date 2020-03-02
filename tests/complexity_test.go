@@ -21,6 +21,6 @@ func TestComplexity(t *testing.T) {
 		// Assert
 		testutils.AssertStatus(t, response, http.StatusUnprocessableEntity)
 		testutils.AssertGraphQLData(t, response, "null")
-		testutils.AssertGraphQLErrors(t, response, []string{"operation has complexity 178, which exceeds the limit of 150"})
+		testutils.AssertGraphQLErrors(t, response, []string{"operation has complexity 353, which exceeds the limit of 300"})
 	})
 }
